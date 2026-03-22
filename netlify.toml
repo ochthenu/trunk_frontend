@@ -1,0 +1,11 @@
+
+[build]
+command = "curl https://sh.rustup.rs -sSf | sh -s -- -y && source $HOME/.cargo/env && rustup default stable && cargo install trunk && trunk build --release"
+publish = "dist"
+
+[[redirects]]
+from = "/api/*"
+to = "https://rustbackend-production.up.railway.app/:splat"
+status = 200
+force = true
+
