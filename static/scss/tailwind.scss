@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Your SCSS entry */
+@import "./index.scss";
+@import "./home.scss";
+@import "./about.scss";
+@import "./contact.scss";
+@import "./gallery.scss";
+@import "./photos.scss";
+@import "./faq.scss";
+

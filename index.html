@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nozawana</title>
+
+  <!-- Tailwind -->
+  <link data-trunk rel="css" href="static/css/tailwind.generated.css" />
+
+  <!-- SCSS -->
+  <link data-trunk rel="scss" href="static/scss/index.scss" />
+
+  <!-- Images -->
+  <link data-trunk rel="copy-dir" href="static/images" />
+
+  <!-- Netlify redirect -->
+  <link data-trunk rel="copy-file" href="_redirects" />
+
+  <!-- THIS LINE TELLS TRUNK TO BUILD THE YEW APP -->
+  <link data-trunk rel="rust" />
+</head>
+
+<body>
+  <div id="root"></div>
+</body>
+</html>
+
+

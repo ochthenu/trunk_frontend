@@ -1,0 +1,12 @@
+[watch]
+paths = ["static/scss"]
+
+[[hooks]]
+stage = "build"
+command = "echo"
+command_arguments = ["Build completed"]
+
+[[proxy]]
+rewrite = "/api/"
+backend = "http://backend:3000"
+
