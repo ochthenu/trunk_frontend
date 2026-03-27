@@ -1,0 +1,39 @@
+/* gallery.scss */
+
+.gallery-card {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+  h1 {
+    margin-bottom: 1rem;
+  }
+
+  .gallery-folders {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    li {
+      background: #4cafef;
+      padding: 0.8rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+
+      a {
+        color: white;
+        text-decoration: none;
+      }
+
+      &:hover {
+        background: #3a95d9;
+      }
+    }
+  }
+}
