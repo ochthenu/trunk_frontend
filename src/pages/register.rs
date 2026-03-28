@@ -95,14 +95,21 @@ pub fn register() -> Html {
         })
     };
 
+    // Prevent form reload
+    let on_form_submit = Callback::from(|e: SubmitEvent| {
+        e.prevent_default();
+    });
+
     html! {
         <div>
 
             <h1>{"Register"}</h1>
 
-            <form autocomplete="off">
+            <form autocomplete="off" onsubmit={on_form_submit}>
 
                 <input
+                    type="text"
+                    name="name"
                     autocomplete="off"
                     placeholder="Name"
                     value={(*name).clone()}
@@ -110,7 +117,9 @@ pub fn register() -> Html {
                 />
 
                 <input
-                    autocomplete="off"
+                    type="email"
+                    name="username"
+                    autocomplete="username"
                     placeholder="Email"
                     value={(*email).clone()}
                     oninput={on_email}
@@ -118,6 +127,7 @@ pub fn register() -> Html {
 
                 <input
                     type="password"
+                    name="new-password"
                     autocomplete="new-password"
                     placeholder="Password"
                     value={(*password).clone()}
