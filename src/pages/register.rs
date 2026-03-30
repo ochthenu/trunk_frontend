@@ -3,6 +3,12 @@ use gloo_net::http::Request;
 use serde::Serialize;
 use wasm_bindgen_futures::spawn_local;
 
+#[cfg(debug_assertions)]
+const API_BASE: &str = "/api";
+
+#[cfg(not(debug_assertions))]
+const API_BASE: &str = "https://rustbackend-production.up.railway.app";
+
 #[derive(Serialize)]
 struct RegisterPayload {
     name: String,
@@ -63,7 +69,7 @@ pub fn register() -> Html {
 
             spawn_local(async move {
 
-                let response = Request::post("/api/register")
+                let response = Request::post(&format!("{}/register", API_BASE))
                     .header("Content-Type", "application/json")
                     .json(&payload)
                     .unwrap()
@@ -73,14 +79,10 @@ pub fn register() -> Html {
                 match response {
                     Ok(resp) => {
                         if resp.status() == 200 {
-
                             message_handle.set("User registered successfully".to_string());
-
-                            // clear the form
                             name_handle.set(String::new());
                             email_handle.set(String::new());
                             password_handle.set(String::new());
-
                         } else {
                             message_handle.set(format!("Server returned {}", resp.status()));
                         }
@@ -97,15 +99,12 @@ pub fn register() -> Html {
 
     html! {
         <div>
-
             <h1>{"Register"}</h1>
 
             <form autocomplete="off">
 
                 <input
                     type="text"
-                    name="random_name_field"
-                    autocomplete="off"
                     placeholder="Name"
                     value={(*name).clone()}
                     oninput={on_name}
@@ -113,8 +112,6 @@ pub fn register() -> Html {
 
                 <input
                     type="email"
-                    name="email_fake"
-                    autocomplete="off"
                     placeholder="Email"
                     value={(*email).clone()}
                     oninput={on_email}
@@ -122,8 +119,6 @@ pub fn register() -> Html {
 
                 <input
                     type="password"
-                    name="password_fake"
-                    autocomplete="new-password"
                     placeholder="Password"
                     value={(*password).clone()}
                     oninput={on_password}
@@ -136,7 +131,6 @@ pub fn register() -> Html {
             </form>
 
             <p>{ (*message).clone() }</p>
-
         </div>
     }
 }

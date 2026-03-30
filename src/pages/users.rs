@@ -2,6 +2,12 @@ use yew::prelude::*;
 use gloo::net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 
+#[cfg(debug_assertions)]
+const API_BASE: &str = "/api";
+
+#[cfg(not(debug_assertions))]
+const API_BASE: &str = "https://rustbackend-production.up.railway.app";
+
 #[derive(Clone, PartialEq, serde::Deserialize)]
 struct User {
     id: i32,
@@ -17,7 +23,7 @@ pub fn users() -> Html {
         let users = users.clone();
         use_effect_with((), move |_| {
             spawn_local(async move {
-                let response = Request::get("/users")
+                let response = Request::get(&format!("{}/users", API_BASE))
                     .send()
                     .await
                     .unwrap()
@@ -36,7 +42,6 @@ pub fn users() -> Html {
             <h1>{ "User Administration" }</h1>
 
             <table class="users-table">
-
                 <thead>
                     <tr>
                         <th>{ "Name" }</th>
@@ -53,19 +58,18 @@ pub fn users() -> Html {
                             let users = users.clone();
 
                             let delete = Callback::from(move |_| {
-
                                 let users = users.clone();
 
                                 spawn_local(async move {
 
                                     let _ = Request::delete(
-                                        &format!("/users/{}", id)
+                                        &format!("{}/users/{}", API_BASE, id)
                                     )
                                     .send()
                                     .await;
 
                                     // reload list
-                                    let response = Request::get("/users")
+                                    let response = Request::get(&format!("{}/users", API_BASE))
                                         .send()
                                         .await
                                         .unwrap()
@@ -75,7 +79,6 @@ pub fn users() -> Html {
 
                                     users.set(response);
                                 });
-
                             });
 
                             html! {
@@ -91,7 +94,6 @@ pub fn users() -> Html {
                         })
                     }
                 </tbody>
-
             </table>
         </div>
     }
