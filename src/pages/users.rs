@@ -18,10 +18,11 @@ struct User {
 pub fn users() -> Html {
     let users = use_state(|| Vec::<User>::new());
 
-    // Load users
+    // ✅ FIXED: use_effect instead of use_effect_with
     {
         let users = users.clone();
-        use_effect_with((), move |_| {
+
+        use_effect(move || {
             spawn_local(async move {
                 let response = Request::get(&format!("{}/users", API_BASE))
                     .send()
@@ -33,6 +34,7 @@ pub fn users() -> Html {
 
                 users.set(response);
             });
+
             || ()
         });
     }
