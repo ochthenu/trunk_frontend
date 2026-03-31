@@ -2,10 +2,7 @@ use yew::prelude::*;
 use gloo::net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 
-#[cfg(debug_assertions)]
-const API_BASE: &str = "/api";
-
-#[cfg(not(debug_assertions))]
+// ✅ ALWAYS use production backend (simple + reliable)
 const API_BASE: &str = "https://rustbackend-production.up.railway.app";
 
 #[derive(Clone, PartialEq, serde::Deserialize)]
@@ -18,21 +15,27 @@ struct User {
 pub fn users() -> Html {
     let users = use_state(|| Vec::<User>::new());
 
-    // ✅ FIXED: use_effect instead of use_effect_with
+    // Load users
     {
         let users = users.clone();
 
         use_effect(move || {
             spawn_local(async move {
-                let response = Request::get(&format!("{}/users", API_BASE))
+                match Request::get(&format!("{}/users", API_BASE))
                     .send()
                     .await
-                    .unwrap()
-                    .json::<Vec<User>>()
-                    .await
-                    .unwrap();
-
-                users.set(response);
+                {
+                    Ok(resp) => {
+                        if let Ok(data) = resp.json::<Vec<User>>().await {
+                            users.set(data);
+                        } else {
+                            web_sys::console::log_1(&"Failed to parse users".into());
+                        }
+                    }
+                    Err(_) => {
+                        web_sys::console::log_1(&"Failed to fetch users".into());
+                    }
+                }
             });
 
             || ()
@@ -71,15 +74,14 @@ pub fn users() -> Html {
                                     .await;
 
                                     // reload list
-                                    let response = Request::get(&format!("{}/users", API_BASE))
+                                    if let Ok(resp) = Request::get(&format!("{}/users", API_BASE))
                                         .send()
                                         .await
-                                        .unwrap()
-                                        .json::<Vec<User>>()
-                                        .await
-                                        .unwrap();
-
-                                    users.set(response);
+                                    {
+                                        if let Ok(data) = resp.json::<Vec<User>>().await {
+                                            users.set(data);
+                                        }
+                                    }
                                 });
                             });
 
