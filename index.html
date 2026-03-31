@@ -14,10 +14,10 @@
   <!-- Images -->
   <link data-trunk rel="copy-dir" href="static/images" />
 
-  <!-- Netlify redirect -->
-  <link data-trunk rel="copy-file" href="_redirects" />
+  <!-- ✅ FIX: correctly copy Netlify redirects -->
+  <link data-trunk rel="copy-file" href="static/_redirects" />
 
-  <!-- THIS LINE TELLS TRUNK TO BUILD THE YEW APP -->
+  <!-- Yew app -->
   <link data-trunk rel="rust" />
 </head>
 
