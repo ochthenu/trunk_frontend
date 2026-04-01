@@ -24,27 +24,34 @@ pub fn register() -> Html {
     let password = use_state(|| "".to_string());
     let message = use_state(|| "".to_string());
 
+    // Clear message when user types again (nice UX)
     let on_name = {
         let name = name.clone();
+        let message = message.clone();
         Callback::from(move |e: InputEvent| {
             let input: web_sys::HtmlInputElement = e.target_unchecked_into();
             name.set(input.value());
+            message.set("".to_string());
         })
     };
 
     let on_email = {
         let email = email.clone();
+        let message = message.clone();
         Callback::from(move |e: InputEvent| {
             let input: web_sys::HtmlInputElement = e.target_unchecked_into();
             email.set(input.value());
+            message.set("".to_string());
         })
     };
 
     let on_password = {
         let password = password.clone();
+        let message = message.clone();
         Callback::from(move |e: InputEvent| {
             let input: web_sys::HtmlInputElement = e.target_unchecked_into();
             password.set(input.value());
+            message.set("".to_string());
         })
     };
 
@@ -80,6 +87,8 @@ pub fn register() -> Html {
                     Ok(resp) => {
                         if resp.status() == 200 {
                             message_handle.set("User registered successfully".to_string());
+
+                            // ✅ Clear form after success
                             name_handle.set(String::new());
                             email_handle.set(String::new());
                             password_handle.set(String::new());
@@ -101,27 +110,34 @@ pub fn register() -> Html {
         <div>
             <h1>{"Register"}</h1>
 
+            // ✅ Stronger autofill prevention
             <form autocomplete="off">
 
                 <input
                     type="text"
+                    name="random_name"                 // trick browser autofill
                     placeholder="Name"
                     value={(*name).clone()}
                     oninput={on_name}
+                    autocomplete="off"
                 />
 
                 <input
                     type="email"
+                    name="random_email"
                     placeholder="Email"
                     value={(*email).clone()}
                     oninput={on_email}
+                    autocomplete="off"
                 />
 
                 <input
                     type="password"
+                    name="new-password"               // prevents password reuse autofill
                     placeholder="Password"
                     value={(*password).clone()}
                     oninput={on_password}
+                    autocomplete="new-password"
                 />
 
                 <button type="button" onclick={on_submit}>
