@@ -13,6 +13,7 @@ js-sys = "0.3"
 gloo = "0.7"
 gloo-net = "0.5"
 
+
 serde = { version = "1", features = ["derive"] }
 wasm-bindgen-futures = "0.4"
 

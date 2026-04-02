@@ -1,6 +1,6 @@
 use yew::prelude::*;
 use gloo::net::http::Request;
-use gloo_storage::{LocalStorage, Storage};
+use gloo::storage::{LocalStorage, Storage}; // ✅ FIXED HERE
 use wasm_bindgen_futures::spawn_local;
 
 #[cfg(debug_assertions)]
@@ -19,14 +19,21 @@ struct User {
 pub fn users() -> Html {
     let users = use_state(|| Vec::<User>::new());
 
-    // ✅ Fetch users on load (WITH TOKEN)
+    // Get token safely
+    let token: String = LocalStorage::get("token").unwrap_or_default();
+
+    // Load users
     {
         let users = users.clone();
+        let token = token.clone();
 
         use_effect_with((), move |_| {
             spawn_local(async move {
 
-                let token: String = LocalStorage::get("token").unwrap_or_default();
+                if token.is_empty() {
+                    web_sys::console::log_1(&"❌ No token found".into());
+                    return;
+                }
 
                 let url = format!("{}/users", API_BASE);
                 web_sys::console::log_1(&format!("Fetching: {}", url).into());
@@ -41,13 +48,8 @@ pub fn users() -> Html {
 
                         if resp.status() == 200 {
                             match resp.json::<Vec<User>>().await {
-                                Ok(data) => {
-                                    web_sys::console::log_1(&format!("Users: {:?}", data).into());
-                                    users.set(data);
-                                }
-                                Err(e) => {
-                                    web_sys::console::log_1(&format!("JSON error: {:?}", e).into());
-                                }
+                                Ok(data) => users.set(data),
+                                Err(e) => web_sys::console::log_1(&format!("JSON error: {:?}", e).into()),
                             }
                         } else {
                             web_sys::console::log_1(&"❌ Unauthorized or forbidden".into());
@@ -67,76 +69,69 @@ pub fn users() -> Html {
         <div>
             <h1>{ "User Administration" }</h1>
 
-            <table class="users-table">
-                <thead>
-                    <tr>
-                        <th>{ "Name" }</th>
-                        <th>{ "ID" }</th>
-                        <th>{ "Action" }</th>
-                    </tr>
-                </thead>
+            {
+                if token.is_empty() {
+                    html! { <p>{ "Please log in to view users." }</p> }
+                } else {
+                    html! {
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>{ "Name" }</th>
+                                    <th>{ "ID" }</th>
+                                    <th>{ "Action" }</th>
+                                </tr>
+                            </thead>
 
-                <tbody>
-                    {
-                        for users.iter().map(|user| {
-                            let id = user.id;
-                            let users = users.clone();
+                            <tbody>
+                                {
+                                    for users.iter().map(|user| {
+                                        let id = user.id;
+                                        let users = users.clone();
+                                        let token = token.clone();
 
-                            let delete = Callback::from(move |_| {
-                                let users = users.clone();
+                                        let delete = Callback::from(move |_| {
+                                            let users = users.clone();
+                                            let token = token.clone();
 
-                                spawn_local(async move {
+                                            spawn_local(async move {
 
-                                    let token: String = LocalStorage::get("token").unwrap_or_default();
+                                                let _ = Request::delete(
+                                                    &format!("{}/users/{}", API_BASE, id)
+                                                )
+                                                .header("Authorization", &format!("Bearer {}", token))
+                                                .send()
+                                                .await;
 
-                                    let url = format!("{}/users/{}", API_BASE, id);
-                                    web_sys::console::log_1(&format!("Deleting: {}", url).into());
-
-                                    let response = Request::delete(&url)
-                                        .header("Authorization", &format!("Bearer {}", token))
-                                        .send()
-                                        .await;
-
-                                    match response {
-                                        Ok(resp) => {
-                                            web_sys::console::log_1(&format!("Delete status: {}", resp.status()).into());
-
-                                            if resp.status() == 200 {
-                                                // ✅ Reload list after successful delete
-                                                let refreshed = Request::get(&format!("{}/users", API_BASE))
+                                                // reload users
+                                                if let Ok(resp) = Request::get(&format!("{}/users", API_BASE))
                                                     .header("Authorization", &format!("Bearer {}", token))
                                                     .send()
                                                     .await
-                                                    .unwrap()
-                                                    .json::<Vec<User>>()
-                                                    .await
-                                                    .unwrap();
+                                                {
+                                                    if let Ok(data) = resp.json::<Vec<User>>().await {
+                                                        users.set(data);
+                                                    }
+                                                }
+                                            });
+                                        });
 
-                                                users.set(refreshed);
-                                            } else {
-                                                web_sys::console::log_1(&"❌ Delete failed (401/403?)".into());
-                                            }
+                                        html! {
+                                            <tr>
+                                                <td>{ &user.name }</td>
+                                                <td>{ user.id }</td>
+                                                <td>
+                                                    <button onclick={delete}>{ "Delete" }</button>
+                                                </td>
+                                            </tr>
                                         }
-                                        Err(e) => {
-                                            web_sys::console::log_1(&format!("Delete error: {:?}", e).into());
-                                        }
-                                    }
-                                });
-                            });
-
-                            html! {
-                                <tr>
-                                    <td>{ &user.name }</td>
-                                    <td>{ user.id }</td>
-                                    <td>
-                                        <button onclick={delete}>{ "Delete" }</button>
-                                    </td>
-                                </tr>
-                            }
-                        })
+                                    })
+                                }
+                            </tbody>
+                        </table>
                     }
-                </tbody>
-            </table>
+                }
+            }
         </div>
     }
 }
