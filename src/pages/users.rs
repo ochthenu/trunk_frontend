@@ -1,5 +1,6 @@
 use yew::prelude::*;
 use gloo::net::http::Request;
+use gloo_storage::{LocalStorage, Storage};
 use wasm_bindgen_futures::spawn_local;
 
 #[cfg(debug_assertions)]
@@ -18,28 +19,38 @@ struct User {
 pub fn users() -> Html {
     let users = use_state(|| Vec::<User>::new());
 
-    // ✅ Correct hook (runs once reliably)
+    // ✅ Fetch users on load (WITH TOKEN)
     {
         let users = users.clone();
 
         use_effect_with((), move |_| {
             spawn_local(async move {
 
+                let token: String = LocalStorage::get("token").unwrap_or_default();
+
                 let url = format!("{}/users", API_BASE);
                 web_sys::console::log_1(&format!("Fetching: {}", url).into());
 
-                match Request::get(&url).send().await {
+                match Request::get(&url)
+                    .header("Authorization", &format!("Bearer {}", token))
+                    .send()
+                    .await
+                {
                     Ok(resp) => {
                         web_sys::console::log_1(&format!("Status: {}", resp.status()).into());
 
-                        match resp.json::<Vec<User>>().await {
-                            Ok(data) => {
-                                web_sys::console::log_1(&format!("Users: {:?}", data).into());
-                                users.set(data);
+                        if resp.status() == 200 {
+                            match resp.json::<Vec<User>>().await {
+                                Ok(data) => {
+                                    web_sys::console::log_1(&format!("Users: {:?}", data).into());
+                                    users.set(data);
+                                }
+                                Err(e) => {
+                                    web_sys::console::log_1(&format!("JSON error: {:?}", e).into());
+                                }
                             }
-                            Err(e) => {
-                                web_sys::console::log_1(&format!("JSON error: {:?}", e).into());
-                            }
+                        } else {
+                            web_sys::console::log_1(&"❌ Unauthorized or forbidden".into());
                         }
                     }
                     Err(e) => {
@@ -76,22 +87,40 @@ pub fn users() -> Html {
 
                                 spawn_local(async move {
 
-                                    let _ = Request::delete(
-                                        &format!("{}/users/{}", API_BASE, id)
-                                    )
-                                    .send()
-                                    .await;
+                                    let token: String = LocalStorage::get("token").unwrap_or_default();
 
-                                    // reload list
-                                    let response = Request::get(&format!("{}/users", API_BASE))
+                                    let url = format!("{}/users/{}", API_BASE, id);
+                                    web_sys::console::log_1(&format!("Deleting: {}", url).into());
+
+                                    let response = Request::delete(&url)
+                                        .header("Authorization", &format!("Bearer {}", token))
                                         .send()
-                                        .await
-                                        .unwrap()
-                                        .json::<Vec<User>>()
-                                        .await
-                                        .unwrap();
+                                        .await;
 
-                                    users.set(response);
+                                    match response {
+                                        Ok(resp) => {
+                                            web_sys::console::log_1(&format!("Delete status: {}", resp.status()).into());
+
+                                            if resp.status() == 200 {
+                                                // ✅ Reload list after successful delete
+                                                let refreshed = Request::get(&format!("{}/users", API_BASE))
+                                                    .header("Authorization", &format!("Bearer {}", token))
+                                                    .send()
+                                                    .await
+                                                    .unwrap()
+                                                    .json::<Vec<User>>()
+                                                    .await
+                                                    .unwrap();
+
+                                                users.set(refreshed);
+                                            } else {
+                                                web_sys::console::log_1(&"❌ Delete failed (401/403?)".into());
+                                            }
+                                        }
+                                        Err(e) => {
+                                            web_sys::console::log_1(&format!("Delete error: {:?}", e).into());
+                                        }
+                                    }
                                 });
                             });
 
