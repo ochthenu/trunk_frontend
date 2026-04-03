@@ -9,6 +9,7 @@ pub mod home;
 pub mod photos;
 pub mod register;
 pub mod users;
+pub mod login;
 
 // Re-export page components
 pub use about::About;
@@ -21,3 +22,4 @@ pub use home::Home;
 pub use photos::Photos;
 pub use register::Register;
 pub use users::Users;
+pub use login::Login;

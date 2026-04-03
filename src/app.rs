@@ -2,7 +2,7 @@ use yew::prelude::*;
 use yew_router::prelude::*;
 
 use crate::pages::{
-    About, Blog, Contact, Faq, Gallery, Home, Photos, Users, Register,
+    About, Blog, Contact, Faq, Gallery, Home, Photos, Users, Register, Login, // ✅ added Login
 };
 
 #[derive(Routable, PartialEq, Clone, Debug)]
@@ -27,6 +27,8 @@ pub enum Route {
     Users,
     #[at("/register")]
     Register,
+    #[at("/login")] // ✅ NEW ROUTE
+    Login,
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -46,6 +48,7 @@ fn switch(route: Route) -> Html {
         Route::Faq => html! { <Faq /> },
         Route::Users => html! { <Users /> },
         Route::Register => html! { <Register /> },
+        Route::Login => html! { <Login /> }, // ✅ HANDLE LOGIN
         Route::NotFound => html! { <h1>{ "404 – Page not found" }</h1> },
     }
 }
@@ -65,6 +68,7 @@ pub fn app() -> Html {
                         <li><Link<Route> to={Route::Blog}>{ "Blog" }</Link<Route>></li>
                         <li><Link<Route> to={Route::Faq}>{ "FAQ" }</Link<Route>></li>
                         <li><Link<Route> to={Route::Register}>{ "Register" }</Link<Route>></li>
+                        <li><Link<Route> to={Route::Login}>{ "Login" }</Link<Route>></li>
                     </ul>
                 </nav>
 
