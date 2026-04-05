@@ -1,4 +1,5 @@
 use yew::prelude::*;
+use yew_router::prelude::*;
 use gloo::net::http::Request;
 use gloo::storage::{LocalStorage, Storage};
 use wasm_bindgen_futures::spawn_local;
@@ -27,6 +28,8 @@ pub fn login() -> Html {
     let password = use_state(|| "".to_string());
     let message = use_state(|| "".to_string());
 
+    let navigator = use_navigator();
+
     let on_email = {
         let email = email.clone();
         Callback::from(move |e: InputEvent| {
@@ -47,6 +50,7 @@ pub fn login() -> Html {
         let email = email.clone();
         let password = password.clone();
         let message = message.clone();
+        let navigator = navigator.clone();
 
         Callback::from(move |_| {
             let payload = LoginPayload {
@@ -55,23 +59,33 @@ pub fn login() -> Html {
             };
 
             let message_handle = message.clone();
+            let navigator = navigator.clone();
 
             spawn_local(async move {
                 let response = Request::post(&format!("{}/login", API_BASE))
                     .header("Content-Type", "application/json")
-                    .json(&payload)
-                    .unwrap()
-                    .send()
-                    .await;
+                    .json(&payload);
+
+                let response = match response {
+                    Ok(req) => req.send().await,
+                    Err(_) => {
+                        message_handle.set("Request build failed".into());
+                        return;
+                    }
+                };
 
                 match response {
                     Ok(resp) => {
                         if resp.status() == 200 {
                             match resp.json::<LoginResponse>().await {
                                 Ok(data) => {
-                                    // ✅ store token
-                                    LocalStorage::set("token", data.token).unwrap();
+                                    let _ = LocalStorage::set("token", data.token);
                                     message_handle.set("Login successful".to_string());
+
+                                    // ✅ Redirect to users page
+                                    if let Some(nav) = navigator {
+                                        nav.push(&crate::app::Route::Users);
+                                    }
                                 }
                                 Err(_) => {
                                     message_handle.set("Invalid response".to_string());
@@ -93,27 +107,23 @@ pub fn login() -> Html {
         <div>
             <h1>{ "Login" }</h1>
 
-            <form autocomplete="off">
+            <input
+                type="email"
+                placeholder="Email"
+                value={(*email).clone()}
+                oninput={on_email}
+            />
 
-                <input
-                    type="email"
-                    placeholder="Email"
-                    value={(*email).clone()}
-                    oninput={on_email}
-                />
+            <input
+                type="password"
+                placeholder="Password"
+                value={(*password).clone()}
+                oninput={on_password}
+            />
 
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={(*password).clone()}
-                    oninput={on_password}
-                />
-
-                <button type="button" onclick={on_submit}>
-                    { "Login" }
-                </button>
-
-            </form>
+            <button onclick={on_submit}>
+                { "Login" }
+            </button>
 
             <p>{ (*message).clone() }</p>
         </div>

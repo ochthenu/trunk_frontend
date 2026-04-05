@@ -1,8 +1,10 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
+use gloo::storage::{LocalStorage, Storage};
+use web_sys::window;
 
 use crate::pages::{
-    About, Blog, Contact, Faq, Gallery, Home, Photos, Users, Register, Login, // ✅ added Login
+    About, Blog, Contact, Faq, Gallery, Home, Photos, Users, Register, Login,
 };
 
 #[derive(Routable, PartialEq, Clone, Debug)]
@@ -27,7 +29,7 @@ pub enum Route {
     Users,
     #[at("/register")]
     Register,
-    #[at("/login")] // ✅ NEW ROUTE
+    #[at("/login")]
     Login,
     #[not_found]
     #[at("/404")]
@@ -48,13 +50,26 @@ fn switch(route: Route) -> Html {
         Route::Faq => html! { <Faq /> },
         Route::Users => html! { <Users /> },
         Route::Register => html! { <Register /> },
-        Route::Login => html! { <Login /> }, // ✅ HANDLE LOGIN
+        Route::Login => html! { <Login /> },
         Route::NotFound => html! { <h1>{ "404 – Page not found" }</h1> },
     }
 }
 
 #[function_component(App)]
 pub fn app() -> Html {
+    let is_logged_in = use_state(|| LocalStorage::get::<String>("token").is_ok());
+
+    let onclick_logout = {
+        Callback::from(move |_| {
+            LocalStorage::delete("token");
+
+            // 🔥 Force refresh so navbar updates
+            if let Some(win) = window() {
+                let _ = win.location().reload();
+            }
+        })
+    };
+
     html! {
         <BrowserRouter>
             <main class="app-container">
@@ -67,8 +82,18 @@ pub fn app() -> Html {
                         <li><Link<Route> to={Route::Gallery}>{ "Gallery" }</Link<Route>></li>
                         <li><Link<Route> to={Route::Blog}>{ "Blog" }</Link<Route>></li>
                         <li><Link<Route> to={Route::Faq}>{ "FAQ" }</Link<Route>></li>
-                        <li><Link<Route> to={Route::Register}>{ "Register" }</Link<Route>></li>
-                        <li><Link<Route> to={Route::Login}>{ "Login" }</Link<Route>></li>
+
+                        if *is_logged_in {
+                            <>
+                                <li><Link<Route> to={Route::Users}>{ "Users" }</Link<Route>></li>
+                                <li><button onclick={onclick_logout}>{ "Logout" }</button></li>
+                            </>
+                        } else {
+                            <>
+                                <li><Link<Route> to={Route::Register}>{ "Register" }</Link<Route>></li>
+                                <li><Link<Route> to={Route::Login}>{ "Login" }</Link<Route>></li>
+                            </>
+                        }
                     </ul>
                 </nav>
 
