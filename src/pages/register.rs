@@ -24,7 +24,7 @@ pub fn register() -> Html {
     let password = use_state(|| "".to_string());
     let message = use_state(|| "".to_string());
 
-    // Clear message when user types again (nice UX)
+    // Clear message when typing
     let on_name = {
         let name = name.clone();
         let message = message.clone();
@@ -88,7 +88,7 @@ pub fn register() -> Html {
                         if resp.status() == 200 {
                             message_handle.set("User registered successfully".to_string());
 
-                            // ✅ Clear form after success
+                            // clear form
                             name_handle.set(String::new());
                             email_handle.set(String::new());
                             password_handle.set(String::new());
@@ -107,41 +107,49 @@ pub fn register() -> Html {
     };
 
     html! {
-        <div>
-            <h1>{"Register"}</h1>
+        <div class="page-content">
+            <h1>{ "Register" }</h1>
 
-            // ✅ Stronger autofill prevention
             <form autocomplete="off">
 
-                <input
-                    type="text"
-                    name="random_name"                 // trick browser autofill
-                    placeholder="Name"
-                    value={(*name).clone()}
-                    oninput={on_name}
-                    autocomplete="off"
-                />
+                <div class="form-row">
+                    <label>{ "Name:" }</label>
+                    <input
+                        type="text"
+                        name="random_name"
+                        placeholder="Enter your name"
+                        value={(*name).clone()}
+                        oninput={on_name}
+                        autocomplete="off"
+                    />
+                </div>
 
-                <input
-                    type="email"
-                    name="random_email"
-                    placeholder="Email"
-                    value={(*email).clone()}
-                    oninput={on_email}
-                    autocomplete="off"
-                />
+                <div class="form-row">
+                    <label>{ "Email address:" }</label>
+                    <input
+                        type="email"
+                        name="random_email"
+                        placeholder="Enter your email"
+                        value={(*email).clone()}
+                        oninput={on_email}
+                        autocomplete="off"
+                    />
+                </div>
 
-                <input
-                    type="password"
-                    name="new-password"               // prevents password reuse autofill
-                    placeholder="Password"
-                    value={(*password).clone()}
-                    oninput={on_password}
-                    autocomplete="new-password"
-                />
+                <div class="form-row">
+                    <label>{ "Password:" }</label>
+                    <input
+                        type="password"
+                        name="new-password"
+                        placeholder="Enter your password"
+                        value={(*password).clone()}
+                        oninput={on_password}
+                        autocomplete="new-password"
+                    />
+                </div>
 
                 <button type="button" onclick={on_submit}>
-                    {"Register"}
+                    { "Register" }
                 </button>
 
             </form>

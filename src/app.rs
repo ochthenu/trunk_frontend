@@ -1,7 +1,6 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 use gloo::storage::{LocalStorage, Storage};
-use web_sys::window;
 
 use crate::pages::{
     About, Blog, Contact, Faq, Gallery, Home, Photos, Users, Register, Login,
@@ -57,16 +56,34 @@ fn switch(route: Route) -> Html {
 
 #[function_component(App)]
 pub fn app() -> Html {
-    let is_logged_in = use_state(|| LocalStorage::get::<String>("token").is_ok());
+    let navigator = use_navigator();
 
-    let onclick_logout = {
+    // ✅ Check token
+    let token: Option<String> = LocalStorage::get("token").ok();
+    let is_logged_in = token.is_some();
+
+    // 👇 Optional: extract username (future improvement)
+    let username = if is_logged_in {
+        "User" // later we decode JWT
+    } else {
+        ""
+    };
+
+    let on_logout = {
+        let navigator = navigator.clone();
         Callback::from(move |_| {
             LocalStorage::delete("token");
 
-            // 🔥 Force refresh so navbar updates
-            if let Some(win) = window() {
-                let _ = win.location().reload();
+            if let Some(nav) = navigator.clone() {
+                nav.push(&Route::Home);
             }
+
+            // 🔥 force UI refresh
+            web_sys::window()
+                .unwrap()
+                .location()
+                .reload()
+                .unwrap();
         })
     };
 
@@ -75,6 +92,7 @@ pub fn app() -> Html {
             <main class="app-container">
                 <nav class="main-nav">
                     <ul>
+
                         <li><Link<Route> to={Route::Home}>{ "Home" }</Link<Route>></li>
                         <li><Link<Route> to={Route::About}>{ "About" }</Link<Route>></li>
                         <li><Link<Route> to={Route::Contact}>{ "Contact" }</Link<Route>></li>
@@ -83,17 +101,29 @@ pub fn app() -> Html {
                         <li><Link<Route> to={Route::Blog}>{ "Blog" }</Link<Route>></li>
                         <li><Link<Route> to={Route::Faq}>{ "FAQ" }</Link<Route>></li>
 
-                        if *is_logged_in {
-                            <>
-                                <li><Link<Route> to={Route::Users}>{ "Users" }</Link<Route>></li>
-                                <li><button onclick={onclick_logout}>{ "Logout" }</button></li>
-                            </>
-                        } else {
-                            <>
-                                <li><Link<Route> to={Route::Register}>{ "Register" }</Link<Route>></li>
-                                <li><Link<Route> to={Route::Login}>{ "Login" }</Link<Route>></li>
-                            </>
+                        {
+                            if is_logged_in {
+                                html! {
+                                    <>
+                                        <li><Link<Route> to={Route::Users}>{ "Users" }</Link<Route>></li>
+                                        <li>{ format!("Hello, {}", username) }</li>
+                                        <li>
+                                            <button onclick={on_logout}>
+                                                { "Logout" }
+                                            </button>
+                                        </li>
+                                    </>
+                                }
+                            } else {
+                                html! {
+                                    <>
+                                        <li><Link<Route> to={Route::Register}>{ "Register" }</Link<Route>></li>
+                                        <li><Link<Route> to={Route::Login}>{ "Login" }</Link<Route>></li>
+                                    </>
+                                }
+                            }
                         }
+
                     </ul>
                 </nav>
 

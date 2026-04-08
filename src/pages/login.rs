@@ -82,7 +82,6 @@ pub fn login() -> Html {
                                     let _ = LocalStorage::set("token", data.token);
                                     message_handle.set("Login successful".to_string());
 
-                                    // ✅ Redirect to users page
                                     if let Some(nav) = navigator {
                                         nav.push(&crate::app::Route::Users);
                                     }
@@ -104,22 +103,28 @@ pub fn login() -> Html {
     };
 
     html! {
-        <div>
+        <div class="page-content">
             <h1>{ "Login" }</h1>
 
-            <input
-                type="email"
-                placeholder="Email"
-                value={(*email).clone()}
-                oninput={on_email}
-            />
+            <div class="form-row">
+                <label>{ "Email address:" }</label>
+                <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={(*email).clone()}
+                    oninput={on_email}
+                />
+            </div>
 
-            <input
-                type="password"
-                placeholder="Password"
-                value={(*password).clone()}
-                oninput={on_password}
-            />
+            <div class="form-row">
+                <label>{ "Password:" }</label>
+                <input
+                    type="password"
+                    placeholder="Enter your password"
+                    value={(*password).clone()}
+                    oninput={on_password}
+                />
+            </div>
 
             <button onclick={on_submit}>
                 { "Login" }
