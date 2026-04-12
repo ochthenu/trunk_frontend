@@ -1,10 +1,13 @@
 use yew::prelude::*;
+use yew_router::prelude::*;
 use gloo::storage::{LocalStorage, Storage};
 use web_sys::HtmlTextAreaElement;
 
 #[function_component(Blog)]
 pub fn blog() -> Html {
-    // ✅ Load posts (username, content)
+    let navigator = use_navigator();
+
+    // ✅ Load posts
     let posts = use_state(|| {
         LocalStorage::get("posts").unwrap_or(Vec::<(String, String)>::new())
     });
@@ -46,7 +49,7 @@ pub fn blog() -> Html {
         })
     };
 
-    // ❌ delete ONE post
+    // ❌ delete one
     let on_delete = {
         let posts = posts.clone();
         let username = username.clone();
@@ -56,7 +59,6 @@ pub fn blog() -> Html {
             let mut new_posts = (*posts).clone();
 
             if let Some((post_user, _)) = new_posts.get(index) {
-                // ✅ allow if owner OR admin
                 if *post_user == username || is_admin {
                     new_posts.remove(index);
                 }
@@ -67,7 +69,7 @@ pub fn blog() -> Html {
         })
     };
 
-    // 🧹 clear ALL (admin only)
+    // 🧹 clear all (admin)
     let on_clear_all = {
         let posts = posts.clone();
         let is_admin = is_admin;
@@ -88,11 +90,37 @@ pub fn blog() -> Html {
         })
     };
 
+    // 🔐 logout
+    let on_logout = {
+        let navigator = navigator.clone();
+
+        Callback::from(move |_| {
+            LocalStorage::delete("token");
+            LocalStorage::delete("username");
+
+            if let Some(nav) = navigator.clone() {
+                nav.push(&crate::app::Route::Login);
+            }
+
+            web_sys::window()
+                .unwrap()
+                .location()
+                .reload()
+                .unwrap();
+        })
+    };
+
     html! {
         <div class="page-content">
-            <h1>{ "Blog" }</h1>
+            <div class="blog-header">
+                <p>{ format!("Logged in as: {}", username) }</p>
 
-            <p>{ format!("Logged in as: {}", username) }</p>
+                <button onclick={on_logout}>
+                    { "Logout" }
+                </button>
+            </div>
+
+            <h1>{ "Blog" }</h1>
 
             <div class="blog-form">
                 <h3>{ "Write a post:" }</h3>
@@ -141,7 +169,6 @@ pub fn blog() -> Html {
                                         <strong>{ format!("{}: ", user) }</strong>
                                         { post }
 
-                                        // ✅ Show delete if owner OR admin
                                         {
                                             if *user == username || is_admin {
                                                 html! {

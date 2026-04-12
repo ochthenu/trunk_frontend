@@ -56,37 +56,15 @@ fn switch(route: Route) -> Html {
 
 #[function_component(App)]
 pub fn app() -> Html {
-    let navigator = use_navigator();
-
     // ✅ Check token
     let token: Option<String> = LocalStorage::get("token").ok();
     let is_logged_in = token.is_some();
-
-    let on_logout = {
-        let navigator = navigator.clone();
-        Callback::from(move |_| {
-            LocalStorage::delete("token");
-            LocalStorage::delete("username"); // ✅ also clear username
-
-            if let Some(nav) = navigator.clone() {
-                nav.push(&Route::Home);
-            }
-
-            // 🔥 force UI refresh
-            web_sys::window()
-                .unwrap()
-                .location()
-                .reload()
-                .unwrap();
-        })
-    };
 
     html! {
         <BrowserRouter>
             <main class="app-container">
                 <nav class="main-nav">
                     <ul>
-
                         <li><Link<Route> to={Route::Home}>{ "Home" }</Link<Route>></li>
                         <li><Link<Route> to={Route::About}>{ "About" }</Link<Route>></li>
                         <li><Link<Route> to={Route::Contact}>{ "Contact" }</Link<Route>></li>
@@ -100,11 +78,6 @@ pub fn app() -> Html {
                                 html! {
                                     <>
                                         <li><Link<Route> to={Route::Users}>{ "Users" }</Link<Route>></li>
-                                        <li>
-                                            <button onclick={on_logout}>
-                                                { "Logout" }
-                                            </button>
-                                        </li>
                                     </>
                                 }
                             } else {
@@ -116,7 +89,6 @@ pub fn app() -> Html {
                                 }
                             }
                         }
-
                     </ul>
                 </nav>
 
