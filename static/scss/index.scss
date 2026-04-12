@@ -156,6 +156,40 @@ button:hover {
   }
 }
 
+/* --------------------
+   Blog
+-------------------- */
+
+.blog-form textarea {
+  width: 100%;
+  min-height: 100px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.blog-form h3 {
+  margin-bottom: 6px;
+}
+
+.blog-posts {
+  margin-top: 20px;
+}
+
+.blog-posts h3 {
+  margin-bottom: 10px;
+}
+
+.post-item {
+  background: #f4f7f4;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border-left: 4px solid #2f5d3a;
+}
+
 
 
 
