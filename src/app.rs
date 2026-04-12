@@ -62,17 +62,11 @@ pub fn app() -> Html {
     let token: Option<String> = LocalStorage::get("token").ok();
     let is_logged_in = token.is_some();
 
-    // 👇 Optional: extract username (future improvement)
-    let username = if is_logged_in {
-        "User" // later we decode JWT
-    } else {
-        ""
-    };
-
     let on_logout = {
         let navigator = navigator.clone();
         Callback::from(move |_| {
             LocalStorage::delete("token");
+            LocalStorage::delete("username"); // ✅ also clear username
 
             if let Some(nav) = navigator.clone() {
                 nav.push(&Route::Home);
@@ -106,7 +100,6 @@ pub fn app() -> Html {
                                 html! {
                                     <>
                                         <li><Link<Route> to={Route::Users}>{ "Users" }</Link<Route>></li>
-                                        <li>{ format!("Hello, {}", username) }</li>
                                         <li>
                                             <button onclick={on_logout}>
                                                 { "Logout" }

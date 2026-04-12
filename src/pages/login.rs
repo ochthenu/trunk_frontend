@@ -60,6 +60,7 @@ pub fn login() -> Html {
 
             let message_handle = message.clone();
             let navigator = navigator.clone();
+            let email_for_storage = (*email).clone();
 
             spawn_local(async move {
                 let response = Request::post(&format!("{}/login", API_BASE))
@@ -79,11 +80,21 @@ pub fn login() -> Html {
                         if resp.status() == 200 {
                             match resp.json::<LoginResponse>().await {
                                 Ok(data) => {
+                                    // ✅ Save token
                                     let _ = LocalStorage::set("token", data.token);
+
+                                    // ✅ Save email as username (reliable)
+                                    let _ = LocalStorage::set("username", email_for_storage.clone());
+
                                     message_handle.set("Login successful".to_string());
 
+                                    // ✅ Redirect
                                     if let Some(nav) = navigator {
-                                        nav.push(&crate::app::Route::Users);
+                                        if email_for_storage == "nigel2" {
+                                            nav.push(&crate::app::Route::Users);
+                                        } else {
+                                            nav.push(&crate::app::Route::Blog);
+                                        }
                                     }
                                 }
                                 Err(_) => {
