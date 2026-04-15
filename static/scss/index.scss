@@ -39,7 +39,7 @@ body {
   background: #2f5d3a;
   padding: 0.4rem 0;
   margin: 1rem auto 2.5rem auto;
-  border-radius: 8px;
+  border-radius: 10px; /* slightly softer */
   max-width: 1100px;
 }
 
@@ -66,7 +66,6 @@ body {
   font-weight: 500;
   letter-spacing: 0.03em;
   padding: 0.2rem 0;
-  position: relative;
   transition: opacity 0.2s ease;
 }
 
@@ -74,7 +73,7 @@ body {
   opacity: 0.75;
 }
 
-/* ✅ FIX: Make Logout button look like nav links */
+/* Logout button matches links */
 .main-nav button {
   background: none;
   border: none;
@@ -97,8 +96,8 @@ body {
 .page-content {
   padding: 1.25rem;
   background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border-radius: 10px; /* softer */
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06); /* smoother shadow */
 }
 
 /* --------------------
@@ -119,24 +118,94 @@ body {
 
 .form-row input {
   flex: 1;
-  padding: 6px 8px;
+  padding: 7px 10px; /* slightly nicer */
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.95rem;
 }
 
+/* Buttons */
 button {
   margin-top: 10px;
-  padding: 6px 12px;
+  padding: 7px 14px;
   background-color: #2f5d3a;
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 500;
 }
 
 button:hover {
   opacity: 0.9;
+}
+
+/* --------------------
+   Blog
+-------------------- */
+
+.blog-form textarea {
+  width: 100%;
+  min-height: 110px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.blog-form h3 {
+  margin-bottom: 6px;
+}
+
+.blog-posts {
+  margin-top: 20px;
+}
+
+.blog-posts h3 {
+  margin-bottom: 10px;
+}
+
+.post-item {
+  background: #f4f7f4;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border-left: 4px solid #2f5d3a;
+}
+
+.button-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.post-item button {
+  margin-left: 10px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+/* Blog header (username + logout) */
+.blog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+/* --------------------
+   Home Page
+-------------------- */
+
+.home-title {
+  text-align: center;
+  font-size: 3rem;
+  font-weight: 800;
+  margin: 0;
+  color: #2f5d3a;
+  letter-spacing: 0.8px;
+  line-height: 1.2;
 }
 
 /* --------------------
@@ -147,7 +216,6 @@ button:hover {
 
   .main-nav {
     padding: 0.3rem 0;
-    border-radius: 8px;
   }
 
   .main-nav ul {
@@ -175,59 +243,11 @@ button:hover {
   .form-row input {
     width: 100%;
   }
-}
 
-/* --------------------
-   Blog
--------------------- */
-
-.blog-form textarea {
-  width: 100%;
-  min-height: 100px;
-  margin-top: 8px;
-  margin-bottom: 8px;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-.blog-form h3 {
-  margin-bottom: 6px;
-}
-
-.blog-posts {
-  margin-top: 20px;
-}
-
-.blog-posts h3 {
-  margin-bottom: 10px;
-}
-
-.post-item {
-  background: #f4f7f4;
-  padding: 10px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  border-left: 4px solid #2f5d3a;
-}
-
-.button-row {
-  display: flex;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.post-item button {
-  margin-left: 10px;
-  padding: 4px 8px;
-  font-size: 0.8rem;
-}
-
-.blog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  /* Home title mobile */
+  .home-title {
+    font-size: 1.9rem;
+  }
 }
 
 
