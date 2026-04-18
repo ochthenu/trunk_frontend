@@ -15,10 +15,30 @@ body {
 
 body {
   font-family: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* ✅ Background image */
+  background-image: url("/images/bg.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+
   background-color: #f9f9f9;
+
   color: #333;
   line-height: 1.6;
   font-size: 16px;
+
+  position: relative;
+}
+
+/* ✅ Slightly lighter overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.15);
+  z-index: -1;
 }
 
 /* --------------------
@@ -39,7 +59,7 @@ body {
   background: #2f5d3a;
   padding: 0.4rem 0;
   margin: 1rem auto 2.5rem auto;
-  border-radius: 10px; /* slightly softer */
+  border-radius: 10px;
   max-width: 1100px;
 }
 
@@ -73,7 +93,6 @@ body {
   opacity: 0.75;
 }
 
-/* Logout button matches links */
 .main-nav button {
   background: none;
   border: none;
@@ -90,14 +109,17 @@ body {
 }
 
 /* --------------------
-   Page content
+   Page content (Glass effect)
 -------------------- */
 
 .page-content {
   padding: 1.25rem;
-  background: #fff;
-  border-radius: 10px; /* softer */
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06); /* smoother shadow */
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
 
 /* --------------------
@@ -118,13 +140,12 @@ body {
 
 .form-row input {
   flex: 1;
-  padding: 7px 10px; /* slightly nicer */
+  padding: 7px 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 0.95rem;
 }
 
-/* Buttons */
 button {
   margin-top: 10px;
   padding: 7px 14px;
@@ -167,7 +188,7 @@ button:hover {
 }
 
 .post-item {
-  background: #f4f7f4;
+  background: rgba(244, 247, 244, 0.9);
   padding: 12px;
   border-radius: 8px;
   margin-bottom: 10px;
@@ -186,7 +207,6 @@ button:hover {
   font-size: 0.8rem;
 }
 
-/* Blog header (username + logout) */
 .blog-header {
   display: flex;
   justify-content: space-between;
@@ -198,14 +218,16 @@ button:hover {
    Home Page
 -------------------- */
 
-.home-title {
-  text-align: center;
-  font-size: 3rem;
-  font-weight: 800;
-  margin: 0;
-  color: #2f5d3a;
-  letter-spacing: 0.8px;
-  line-height: 1.2;
+.home-banner {
+  display: block;
+  max-width: 650px;
+  width: 100%;
+  height: auto;
+
+  margin: 0 auto 20px auto;
+
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
 /* --------------------
@@ -229,7 +251,6 @@ button:hover {
     padding: 0.15rem 0;
   }
 
-  /* Stack form nicely on mobile */
   .form-row {
     flex-direction: column;
     align-items: flex-start;
@@ -243,14 +264,4 @@ button:hover {
   .form-row input {
     width: 100%;
   }
-
-  /* Home title mobile */
-  .home-title {
-    font-size: 1.9rem;
-  }
 }
-
-
-
-
-
