@@ -20,7 +20,7 @@ struct LoginPayload {
 #[derive(Deserialize)]
 struct LoginResponse {
     token: String,
-    username: String,
+    username: String, // ✅ REQUIRED
 }
 
 #[function_component(Login)]
@@ -83,12 +83,18 @@ pub fn login() -> Html {
                         if resp.status() == 200 {
                             match resp.json::<LoginResponse>().await {
                                 Ok(data) => {
-                                    // ✅ STORE CORRECT VALUES
+                                    // ✅ STORE BOTH TOKEN + USERNAME
                                     let _ = LocalStorage::set("token", data.token.clone());
                                     let _ = LocalStorage::set("username", data.username.clone());
 
+                                    // DEBUG (optional)
+                                    web_sys::console::log_1(
+                                        &format!("Logged in as: {}", data.username).into()
+                                    );
+
                                     message_handle.set("Login successful".to_string());
 
+                                    // 🚀 Redirect
                                     if let Some(nav) = navigator {
                                         if data.username == "nigel2" {
                                             nav.push(&crate::app::Route::Users);
