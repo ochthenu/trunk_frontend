@@ -1,23 +1,64 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
+use gloo::net::http::Request;
 use gloo::storage::{LocalStorage, Storage};
+use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlTextAreaElement;
+use serde::{Deserialize, Serialize};
+
+#[cfg(debug_assertions)]
+const API_BASE: &str = "/api";
+
+#[cfg(not(debug_assertions))]
+const API_BASE: &str = "https://rustbackend-production.up.railway.app";
+
+#[derive(Deserialize, Clone, PartialEq)]
+struct Post {
+    id: i32,
+    username: String,
+    content: String,
+}
+
+#[derive(Serialize)]
+struct CreatePost {
+    content: String,
+}
 
 #[function_component(Blog)]
 pub fn blog() -> Html {
     let navigator = use_navigator();
 
-    // ✅ Load posts
-    let posts = use_state(|| {
-        LocalStorage::get("posts").unwrap_or(Vec::<(String, String)>::new())
-    });
-
+    let posts = use_state(|| Vec::<Post>::new());
     let input = use_state(|| "".to_string());
 
     let username: String =
         LocalStorage::get("username").unwrap_or("Anonymous".to_string());
 
+    let token: String =
+        LocalStorage::get("token").unwrap_or("".to_string());
+
     let is_admin = username == "nigel2";
+
+    // ✅ LOAD POSTS FROM BACKEND
+    {
+        let posts = posts.clone();
+
+        use_effect_with((), move |_| {
+            spawn_local(async move {
+                let resp = Request::get(&format!("{}/posts", API_BASE))
+                    .send()
+                    .await;
+
+                if let Ok(resp) = resp {
+                    if let Ok(data) = resp.json::<Vec<Post>>().await {
+                        posts.set(data);
+                    }
+                }
+            });
+
+            || ()
+        });
+    }
 
     // ✍️ typing
     let on_input = {
@@ -28,50 +69,72 @@ pub fn blog() -> Html {
         })
     };
 
-    // ➕ add post
+    // ➕ ADD POST (API)
     let on_add = {
         let posts = posts.clone();
         let input = input.clone();
-        let username = username.clone();
+        let token = token.clone();
 
         Callback::from(move |_| {
             if input.is_empty() {
                 return;
             }
 
-            let mut new_posts = (*posts).clone();
-            new_posts.push((username.clone(), (*input).clone()));
+            let content = (*input).clone();
+            let posts = posts.clone();
+            let input = input.clone();
+            let token = token.clone();
 
-            posts.set(new_posts.clone());
-            let _ = LocalStorage::set("posts", new_posts);
+            spawn_local(async move {
+                let _ = Request::post(&format!("{}/posts", API_BASE))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", &format!("Bearer {}", token))
+                    .json(&CreatePost { content })
+                    .unwrap()
+                    .send()
+                    .await;
 
-            input.set(String::new());
+                // 🔄 reload posts
+                if let Ok(resp) = Request::get(&format!("{}/posts", API_BASE)).send().await {
+                    if let Ok(data) = resp.json::<Vec<Post>>().await {
+                        posts.set(data);
+                    }
+                }
+
+                input.set(String::new());
+            });
         })
     };
 
-    // ❌ delete one
+    // ❌ DELETE POST (API)
     let on_delete = {
         let posts = posts.clone();
-        let username = username.clone();
-        let is_admin = is_admin;
+        let token = token.clone();
 
-        Callback::from(move |index: usize| {
-            let mut new_posts = (*posts).clone();
+        Callback::from(move |id: i32| {
+            let posts = posts.clone();
+            let token = token.clone();
 
-            if let Some((post_user, _)) = new_posts.get(index) {
-                if *post_user == username || is_admin {
-                    new_posts.remove(index);
+            spawn_local(async move {
+                let _ = Request::delete(&format!("{}/posts/{}", API_BASE, id))
+                    .header("Authorization", &format!("Bearer {}", token))
+                    .send()
+                    .await;
+
+                // 🔄 reload
+                if let Ok(resp) = Request::get(&format!("{}/posts", API_BASE)).send().await {
+                    if let Ok(data) = resp.json::<Vec<Post>>().await {
+                        posts.set(data);
+                    }
                 }
-            }
-
-            posts.set(new_posts.clone());
-            let _ = LocalStorage::set("posts", new_posts);
+            });
         })
     };
 
-    // 🧹 clear all (admin)
+    // 🧹 CLEAR ALL (ADMIN)
     let on_clear_all = {
         let posts = posts.clone();
+        let token = token.clone();
         let is_admin = is_admin;
 
         Callback::from(move |_| {
@@ -84,8 +147,20 @@ pub fn blog() -> Html {
                 .confirm_with_message("Clear ALL posts?")
                 .unwrap()
             {
-                posts.set(Vec::new());
-                LocalStorage::delete("posts");
+                let posts = posts.clone();
+                let token = token.clone();
+
+                spawn_local(async move {
+                    // delete each post
+                    for post in (*posts).clone() {
+                        let _ = Request::delete(&format!("{}/posts/{}", API_BASE, post.id))
+                            .header("Authorization", &format!("Bearer {}", token))
+                            .send()
+                            .await;
+                    }
+
+                    posts.set(Vec::new());
+                });
             }
         })
     };
@@ -158,19 +233,24 @@ pub fn blog() -> Html {
                         html! { <p>{ "No posts yet." }</p> }
                     } else {
                         html! {
-                            for posts.iter().enumerate().map(|(i, (user, post))| {
+                            for posts.iter().map(|post| {
+                                let can_delete =
+                                    post.username == username || is_admin;
+
+                                let id = post.id;
+
                                 let on_delete = {
                                     let on_delete = on_delete.clone();
-                                    Callback::from(move |_| on_delete.emit(i))
+                                    Callback::from(move |_| on_delete.emit(id))
                                 };
 
                                 html! {
                                     <div class="post-item">
-                                        <strong>{ format!("{}: ", user) }</strong>
-                                        { post }
+                                        <strong>{ format!("{}: ", post.username) }</strong>
+                                        { &post.content }
 
                                         {
-                                            if *user == username || is_admin {
+                                            if can_delete {
                                                 html! {
                                                     <button onclick={on_delete}>
                                                         { "Delete" }
