@@ -34,27 +34,24 @@ pub fn blog() -> Html {
     let username: String =
         LocalStorage::get("username").unwrap_or("Anonymous".to_string());
 
-    let token: Option<String> = LocalStorage::get("token").ok();
+    let token: String =
+        LocalStorage::get("token").unwrap_or("".to_string());
 
-    let is_admin = username.to_lowercase() == "nigel2";
+    let is_admin = username.trim().to_lowercase() == "nigel2";
 
     // ✅ LOAD POSTS
     {
         let posts = posts.clone();
-        let token = token.clone();
 
         use_effect_with((), move |_| {
             spawn_local(async move {
-                if let Some(token) = token {
-                    let resp = Request::get(&format!("{}/posts", API_BASE))
-                        .header("Authorization", &format!("Bearer {}", token))
-                        .send()
-                        .await;
+                let resp = Request::get(&format!("{}/posts", API_BASE))
+                    .send()
+                    .await;
 
-                    if let Ok(resp) = resp {
-                        if let Ok(data) = resp.json::<Vec<Post>>().await {
-                            posts.set(data);
-                        }
+                if let Ok(resp) = resp {
+                    if let Ok(data) = resp.json::<Vec<Post>>().await {
+                        posts.set(data);
                     }
                 }
             });
@@ -83,21 +80,13 @@ pub fn blog() -> Html {
                 return;
             }
 
-            if token.is_none() {
-                web_sys::window()
-                    .unwrap()
-                    .alert_with_message("Please log in to post")
-                    .unwrap();
-                return;
-            }
-
             let content = (*input).clone();
             let posts = posts.clone();
             let input = input.clone();
-            let token = token.clone().unwrap();
+            let token = token.clone();
 
             spawn_local(async move {
-                let resp = Request::post(&format!("{}/posts", API_BASE))
+                let _ = Request::post(&format!("{}/posts", API_BASE))
                     .header("Content-Type", "application/json")
                     .header("Authorization", &format!("Bearer {}", token))
                     .json(&CreatePost { content })
@@ -105,20 +94,8 @@ pub fn blog() -> Html {
                     .send()
                     .await;
 
-                if let Ok(resp) = resp {
-                    if resp.status() != 200 {
-                        web_sys::console::log_1(
-                            &format!("POST failed: {}", resp.status()).into(),
-                        );
-                    }
-                }
-
-                // 🔄 reload posts
-                if let Ok(resp) = Request::get(&format!("{}/posts", API_BASE))
-                    .header("Authorization", &format!("Bearer {}", token))
-                    .send()
-                    .await
-                {
+                // reload posts
+                if let Ok(resp) = Request::get(&format!("{}/posts", API_BASE)).send().await {
                     if let Ok(data) = resp.json::<Vec<Post>>().await {
                         posts.set(data);
                     }
@@ -139,59 +116,17 @@ pub fn blog() -> Html {
             let token = token.clone();
 
             spawn_local(async move {
-                if let Some(token) = token.clone() {
-                    let _ = Request::delete(&format!("{}/posts/{}", API_BASE, id))
-                        .header("Authorization", &format!("Bearer {}", token))
-                        .send()
-                        .await;
+                let _ = Request::delete(&format!("{}/posts/{}", API_BASE, id))
+                    .header("Authorization", &format!("Bearer {}", token))
+                    .send()
+                    .await;
 
-                    // 🔄 reload
-                    if let Ok(resp) = Request::get(&format!("{}/posts", API_BASE))
-                        .header("Authorization", &format!("Bearer {}", token))
-                        .send()
-                        .await
-                    {
-                        if let Ok(data) = resp.json::<Vec<Post>>().await {
-                            posts.set(data);
-                        }
+                if let Ok(resp) = Request::get(&format!("{}/posts", API_BASE)).send().await {
+                    if let Ok(data) = resp.json::<Vec<Post>>().await {
+                        posts.set(data);
                     }
                 }
             });
-        })
-    };
-
-    // 🧹 CLEAR ALL (ADMIN)
-    let on_clear_all = {
-        let posts = posts.clone();
-        let token = token.clone();
-        let is_admin = is_admin;
-
-        Callback::from(move |_| {
-            if !is_admin {
-                return;
-            }
-
-            if web_sys::window()
-                .unwrap()
-                .confirm_with_message("Clear ALL posts?")
-                .unwrap()
-            {
-                let posts = posts.clone();
-                let token = token.clone();
-
-                spawn_local(async move {
-                    if let Some(token) = token {
-                        for post in (*posts).clone() {
-                            let _ = Request::delete(&format!("{}/posts/{}", API_BASE, post.id))
-                                .header("Authorization", &format!("Bearer {}", token))
-                                .send()
-                                .await;
-                        }
-
-                        posts.set(Vec::new());
-                    }
-                });
-            }
         })
     };
 
@@ -207,11 +142,7 @@ pub fn blog() -> Html {
                 nav.push(&crate::app::Route::Login);
             }
 
-            web_sys::window()
-                .unwrap()
-                .location()
-                .reload()
-                .unwrap();
+            web_sys::window().unwrap().location().reload().unwrap();
         })
     };
 
@@ -237,34 +168,10 @@ pub fn blog() -> Html {
                 />
 
                 <div class="button-row">
-                    <button onclick={on_add} disabled={token.is_none()}>
+                    <button onclick={on_add}>
                         { "Add Post" }
                     </button>
-
-                    {
-                        if is_admin {
-                            html! {
-                                <button onclick={on_clear_all}>
-                                    { "Clear ALL Posts" }
-                                </button>
-                            }
-                        } else {
-                            html! {}
-                        }
-                    }
                 </div>
-
-                {
-                    if token.is_none() {
-                        html! {
-                            <p style="color: #888;">
-                                { "You must be logged in to post." }
-                            </p>
-                        }
-                    } else {
-                        html! {}
-                    }
-                }
             </div>
 
             <div class="blog-posts">
@@ -277,17 +184,12 @@ pub fn blog() -> Html {
                         html! {
                             for posts.iter().map(|post| {
 
-                                // 🔍 DEBUG LOG (important)
-                                web_sys::console::log_1(
-                                    &format!(
-                                        "post.username = {}, local username = {}",
-                                        post.username, username
-                                    ).into()
-                                );
+                                // 🔥 NORMALIZED COMPARISON (THE FIX)
+                                let current_user = username.trim().to_lowercase();
+                                let post_user = post.username.trim().to_lowercase();
 
                                 let can_delete =
-                                    is_admin ||
-                                    post.username.to_lowercase() == username.to_lowercase();
+                                    current_user == post_user || current_user == "nigel2";
 
                                 let id = post.id;
 
@@ -300,6 +202,11 @@ pub fn blog() -> Html {
                                     <div class="post-item">
                                         <strong>{ format!("{}: ", post.username) }</strong>
                                         { &post.content }
+
+                                        // 🧪 DEBUG (remove later)
+                                        <p style="font-size: 0.7rem; opacity: 0.6;">
+                                            { format!("DEBUG -> you:[{}] post:[{}]", username, post.username) }
+                                        </p>
 
                                         {
                                             if can_delete {
