@@ -36,7 +36,7 @@ pub fn blog() -> Html {
 
     let token: Option<String> = LocalStorage::get("token").ok();
 
-    let is_admin = username == "nigel2";
+    let is_admin = username.to_lowercase() == "nigel2";
 
     // ✅ LOAD POSTS
     {
@@ -83,7 +83,6 @@ pub fn blog() -> Html {
                 return;
             }
 
-            // 🔐 block anonymous users
             if token.is_none() {
                 web_sys::window()
                     .unwrap()
@@ -277,8 +276,18 @@ pub fn blog() -> Html {
                     } else {
                         html! {
                             for posts.iter().map(|post| {
+
+                                // 🔍 DEBUG LOG (important)
+                                web_sys::console::log_1(
+                                    &format!(
+                                        "post.username = {}, local username = {}",
+                                        post.username, username
+                                    ).into()
+                                );
+
                                 let can_delete =
-                                    is_admin || post.username == username;
+                                    is_admin ||
+                                    post.username.to_lowercase() == username.to_lowercase();
 
                                 let id = post.id;
 
