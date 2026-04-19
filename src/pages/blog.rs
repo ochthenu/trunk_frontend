@@ -34,12 +34,11 @@ pub fn blog() -> Html {
     let username: String =
         LocalStorage::get("username").unwrap_or("Anonymous".to_string());
 
-    // ✅ safer token handling
     let token: Option<String> = LocalStorage::get("token").ok();
 
     let is_admin = username == "nigel2";
 
-    // ✅ LOAD POSTS (WITH TOKEN)
+    // ✅ LOAD POSTS
     {
         let posts = posts.clone();
         let token = token.clone();
@@ -84,30 +83,45 @@ pub fn blog() -> Html {
                 return;
             }
 
+            // 🔐 block anonymous users
+            if token.is_none() {
+                web_sys::window()
+                    .unwrap()
+                    .alert_with_message("Please log in to post")
+                    .unwrap();
+                return;
+            }
+
             let content = (*input).clone();
             let posts = posts.clone();
             let input = input.clone();
-            let token = token.clone();
+            let token = token.clone().unwrap();
 
             spawn_local(async move {
-                if let Some(token) = token.clone() {
-                    let _ = Request::post(&format!("{}/posts", API_BASE))
-                        .header("Content-Type", "application/json")
-                        .header("Authorization", &format!("Bearer {}", token))
-                        .json(&CreatePost { content })
-                        .unwrap()
-                        .send()
-                        .await;
+                let resp = Request::post(&format!("{}/posts", API_BASE))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", &format!("Bearer {}", token))
+                    .json(&CreatePost { content })
+                    .unwrap()
+                    .send()
+                    .await;
 
-                    // 🔄 reload posts WITH TOKEN
-                    if let Ok(resp) = Request::get(&format!("{}/posts", API_BASE))
-                        .header("Authorization", &format!("Bearer {}", token))
-                        .send()
-                        .await
-                    {
-                        if let Ok(data) = resp.json::<Vec<Post>>().await {
-                            posts.set(data);
-                        }
+                if let Ok(resp) = resp {
+                    if resp.status() != 200 {
+                        web_sys::console::log_1(
+                            &format!("POST failed: {}", resp.status()).into(),
+                        );
+                    }
+                }
+
+                // 🔄 reload posts
+                if let Ok(resp) = Request::get(&format!("{}/posts", API_BASE))
+                    .header("Authorization", &format!("Bearer {}", token))
+                    .send()
+                    .await
+                {
+                    if let Ok(data) = resp.json::<Vec<Post>>().await {
+                        posts.set(data);
                     }
                 }
 
@@ -132,7 +146,7 @@ pub fn blog() -> Html {
                         .send()
                         .await;
 
-                    // 🔄 reload WITH TOKEN
+                    // 🔄 reload
                     if let Ok(resp) = Request::get(&format!("{}/posts", API_BASE))
                         .header("Authorization", &format!("Bearer {}", token))
                         .send()
@@ -224,7 +238,7 @@ pub fn blog() -> Html {
                 />
 
                 <div class="button-row">
-                    <button onclick={on_add}>
+                    <button onclick={on_add} disabled={token.is_none()}>
                         { "Add Post" }
                     </button>
 
@@ -240,6 +254,18 @@ pub fn blog() -> Html {
                         }
                     }
                 </div>
+
+                {
+                    if token.is_none() {
+                        html! {
+                            <p style="color: #888;">
+                                { "You must be logged in to post." }
+                            </p>
+                        }
+                    } else {
+                        html! {}
+                    }
+                }
             </div>
 
             <div class="blog-posts">
@@ -252,7 +278,7 @@ pub fn blog() -> Html {
                         html! {
                             for posts.iter().map(|post| {
                                 let can_delete =
-                                    post.username == username || is_admin;
+                                    is_admin || post.username == username;
 
                                 let id = post.id;
 
