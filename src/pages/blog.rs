@@ -203,11 +203,6 @@ pub fn blog() -> Html {
                                         <strong>{ format!("{}: ", post.username) }</strong>
                                         { &post.content }
 
-                                        // 🧪 DEBUG (remove later)
-                                        <p style="font-size: 0.7rem; opacity: 0.6;">
-                                            { format!("DEBUG -> you:[{}] post:[{}]", username, post.username) }
-                                        </p>
-
                                         {
                                             if can_delete {
                                                 html! {
