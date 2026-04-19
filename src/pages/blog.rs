@@ -34,24 +34,28 @@ pub fn blog() -> Html {
     let username: String =
         LocalStorage::get("username").unwrap_or("Anonymous".to_string());
 
-    let token: String =
-        LocalStorage::get("token").unwrap_or("".to_string());
+    // ✅ safer token handling
+    let token: Option<String> = LocalStorage::get("token").ok();
 
     let is_admin = username == "nigel2";
 
-    // ✅ LOAD POSTS FROM BACKEND
+    // ✅ LOAD POSTS (WITH TOKEN)
     {
         let posts = posts.clone();
+        let token = token.clone();
 
         use_effect_with((), move |_| {
             spawn_local(async move {
-                let resp = Request::get(&format!("{}/posts", API_BASE))
-                    .send()
-                    .await;
+                if let Some(token) = token {
+                    let resp = Request::get(&format!("{}/posts", API_BASE))
+                        .header("Authorization", &format!("Bearer {}", token))
+                        .send()
+                        .await;
 
-                if let Ok(resp) = resp {
-                    if let Ok(data) = resp.json::<Vec<Post>>().await {
-                        posts.set(data);
+                    if let Ok(resp) = resp {
+                        if let Ok(data) = resp.json::<Vec<Post>>().await {
+                            posts.set(data);
+                        }
                     }
                 }
             });
@@ -69,7 +73,7 @@ pub fn blog() -> Html {
         })
     };
 
-    // ➕ ADD POST (API)
+    // ➕ ADD POST
     let on_add = {
         let posts = posts.clone();
         let input = input.clone();
@@ -86,18 +90,24 @@ pub fn blog() -> Html {
             let token = token.clone();
 
             spawn_local(async move {
-                let _ = Request::post(&format!("{}/posts", API_BASE))
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", &format!("Bearer {}", token))
-                    .json(&CreatePost { content })
-                    .unwrap()
-                    .send()
-                    .await;
+                if let Some(token) = token.clone() {
+                    let _ = Request::post(&format!("{}/posts", API_BASE))
+                        .header("Content-Type", "application/json")
+                        .header("Authorization", &format!("Bearer {}", token))
+                        .json(&CreatePost { content })
+                        .unwrap()
+                        .send()
+                        .await;
 
-                // 🔄 reload posts
-                if let Ok(resp) = Request::get(&format!("{}/posts", API_BASE)).send().await {
-                    if let Ok(data) = resp.json::<Vec<Post>>().await {
-                        posts.set(data);
+                    // 🔄 reload posts WITH TOKEN
+                    if let Ok(resp) = Request::get(&format!("{}/posts", API_BASE))
+                        .header("Authorization", &format!("Bearer {}", token))
+                        .send()
+                        .await
+                    {
+                        if let Ok(data) = resp.json::<Vec<Post>>().await {
+                            posts.set(data);
+                        }
                     }
                 }
 
@@ -106,7 +116,7 @@ pub fn blog() -> Html {
         })
     };
 
-    // ❌ DELETE POST (API)
+    // ❌ DELETE POST
     let on_delete = {
         let posts = posts.clone();
         let token = token.clone();
@@ -116,15 +126,21 @@ pub fn blog() -> Html {
             let token = token.clone();
 
             spawn_local(async move {
-                let _ = Request::delete(&format!("{}/posts/{}", API_BASE, id))
-                    .header("Authorization", &format!("Bearer {}", token))
-                    .send()
-                    .await;
+                if let Some(token) = token.clone() {
+                    let _ = Request::delete(&format!("{}/posts/{}", API_BASE, id))
+                        .header("Authorization", &format!("Bearer {}", token))
+                        .send()
+                        .await;
 
-                // 🔄 reload
-                if let Ok(resp) = Request::get(&format!("{}/posts", API_BASE)).send().await {
-                    if let Ok(data) = resp.json::<Vec<Post>>().await {
-                        posts.set(data);
+                    // 🔄 reload WITH TOKEN
+                    if let Ok(resp) = Request::get(&format!("{}/posts", API_BASE))
+                        .header("Authorization", &format!("Bearer {}", token))
+                        .send()
+                        .await
+                    {
+                        if let Ok(data) = resp.json::<Vec<Post>>().await {
+                            posts.set(data);
+                        }
                     }
                 }
             });
@@ -151,15 +167,16 @@ pub fn blog() -> Html {
                 let token = token.clone();
 
                 spawn_local(async move {
-                    // delete each post
-                    for post in (*posts).clone() {
-                        let _ = Request::delete(&format!("{}/posts/{}", API_BASE, post.id))
-                            .header("Authorization", &format!("Bearer {}", token))
-                            .send()
-                            .await;
-                    }
+                    if let Some(token) = token {
+                        for post in (*posts).clone() {
+                            let _ = Request::delete(&format!("{}/posts/{}", API_BASE, post.id))
+                                .header("Authorization", &format!("Bearer {}", token))
+                                .send()
+                                .await;
+                        }
 
-                    posts.set(Vec::new());
+                        posts.set(Vec::new());
+                    }
                 });
             }
         })
