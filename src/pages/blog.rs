@@ -32,10 +32,10 @@ pub fn blog() -> Html {
     let input = use_state(|| "".to_string());
 
     let username: String =
-        LocalStorage::get("username").unwrap_or("Anonymous".to_string());
+        LocalStorage::get("username").unwrap_or("".to_string());
 
-    let token: String =
-        LocalStorage::get("token").unwrap_or("".to_string());
+    let token: Option<String> = LocalStorage::get("token").ok();
+    let is_logged_in = token.is_some();
 
     let is_admin = username.trim().to_lowercase() == "nigel2";
 
@@ -45,17 +45,12 @@ pub fn blog() -> Html {
 
         use_effect_with((), move |_| {
             spawn_local(async move {
-                let resp = Request::get(&format!("{}/posts", API_BASE))
-                    .send()
-                    .await;
-
-                if let Ok(resp) = resp {
+                if let Ok(resp) = Request::get(&format!("{}/posts", API_BASE)).send().await {
                     if let Ok(data) = resp.json::<Vec<Post>>().await {
                         posts.set(data);
                     }
                 }
             });
-
             || ()
         });
     }
@@ -76,14 +71,14 @@ pub fn blog() -> Html {
         let token = token.clone();
 
         Callback::from(move |_| {
-            if input.is_empty() {
+            if input.is_empty() || token.is_none() {
                 return;
             }
 
             let content = (*input).clone();
             let posts = posts.clone();
             let input = input.clone();
-            let token = token.clone();
+            let token = token.clone().unwrap();
 
             spawn_local(async move {
                 let _ = Request::post(&format!("{}/posts", API_BASE))
@@ -112,8 +107,12 @@ pub fn blog() -> Html {
         let token = token.clone();
 
         Callback::from(move |id: i32| {
+            if token.is_none() {
+                return;
+            }
+
             let posts = posts.clone();
-            let token = token.clone();
+            let token = token.clone().unwrap();
 
             spawn_local(async move {
                 let _ = Request::delete(&format!("{}/posts/{}", API_BASE, id))
@@ -142,38 +141,82 @@ pub fn blog() -> Html {
                 nav.push(&crate::app::Route::Login);
             }
 
-            web_sys::window().unwrap().location().reload().unwrap();
+            web_sys::window()
+                .unwrap()
+                .location()
+                .reload()
+                .unwrap();
         })
     };
 
     html! {
         <div class="page-content">
-            <div class="blog-header">
-                <p>{ format!("Logged in as: {}", username) }</p>
 
-                <button onclick={on_logout}>
-                    { "Logout" }
-                </button>
+            <div class="blog-header">
+                {
+                    if is_logged_in {
+                        html! { <p>{ format!("Logged in as: {}", username) }</p> }
+                    } else {
+                        html! { <p>{ "Not logged in" }</p> }
+                    }
+                }
+
+                {
+                    if is_logged_in {
+                        html! {
+                            <button onclick={on_logout}>
+                                { "Logout" }
+                            </button>
+                        }
+                    } else {
+                        html! {
+                            <button onclick={
+                                let navigator = navigator.clone();
+                                Callback::from(move |_| {
+                                    if let Some(nav) = navigator.clone() {
+                                        nav.push(&crate::app::Route::Login);
+                                    }
+                                })
+                            }>
+                                { "Login" }
+                            </button>
+                        }
+                    }
+                }
             </div>
 
             <h1>{ "Blog" }</h1>
 
+            // ✅ FORM AREA
             <div class="blog-form">
                 <h3>{ "Write a post:" }</h3>
 
-                <textarea
-                    value={(*input).clone()}
-                    oninput={on_input}
-                    placeholder="Write something..."
-                />
+                {
+                    if is_logged_in {
+                        html! {
+                            <>
+                                <textarea
+                                    value={(*input).clone()}
+                                    oninput={on_input}
+                                    placeholder="Write something..."
+                                />
 
-                <div class="button-row">
-                    <button onclick={on_add}>
-                        { "Add Post" }
-                    </button>
-                </div>
+                                <div class="button-row">
+                                    <button onclick={on_add}>
+                                        { "Add Post" }
+                                    </button>
+                                </div>
+                            </>
+                        }
+                    } else {
+                        html! {
+                            <p>{ "Log in to post" }</p>
+                        }
+                    }
+                }
             </div>
 
+            // ✅ POSTS
             <div class="blog-posts">
                 <h3>{ "Posts:" }</h3>
 
@@ -183,13 +226,9 @@ pub fn blog() -> Html {
                     } else {
                         html! {
                             for posts.iter().map(|post| {
-
-                                // 🔥 NORMALIZED COMPARISON (THE FIX)
-                                let current_user = username.trim().to_lowercase();
-                                let post_user = post.username.trim().to_lowercase();
-
                                 let can_delete =
-                                    current_user == post_user || current_user == "nigel2";
+                                    is_logged_in &&
+                                    (post.username == username || is_admin);
 
                                 let id = post.id;
 
