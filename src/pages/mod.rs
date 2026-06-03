@@ -10,6 +10,7 @@ pub mod photos;
 pub mod register;
 pub mod users;
 pub mod login;
+pub mod photos_category;
 
 // Re-export page components
 pub use about::About;
@@ -23,3 +24,4 @@ pub use photos::Photos;
 pub use register::Register;
 pub use users::Users;
 pub use login::Login;
+pub use photos_category::PhotosCategory;
