@@ -169,32 +169,18 @@ pub fn app() -> Html {
                         </li>
 
                         {
-                            if is_logged_in {
-                                html! {
-                                    <li>
-                                        <Link<Route> to={Route::Users}>
-                                            { "Users" }
-                                        </Link<Route>>
-                                    </li>
-                                }
-                            } else {
-                                html! {
-                                    <>
-                                        <li>
-                                            <Link<Route> to={Route::Register}>
-                                                { "Register" }
-                                            </Link<Route>>
-                                        </li>
-
-                                        <li>
-                                            <Link<Route> to={Route::Login}>
-                                                { "Login" }
-                                            </Link<Route>>
-                                        </li>
-                                    </>
-                                }
-                            }
-                        }
+    if is_logged_in {
+        html! {
+            <li>
+                <Link<Route> to={Route::Users}>
+                    { "Users" }
+                </Link<Route>>
+            </li>
+        }
+    } else {
+        html! {}
+    }
+}
 
                     </ul>
 
