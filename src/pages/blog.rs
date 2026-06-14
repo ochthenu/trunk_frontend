@@ -1,10 +1,10 @@
-use yew::prelude::*;
-use yew_router::prelude::*;
 use gloo::net::http::Request;
 use gloo::storage::{LocalStorage, Storage};
+use serde::{Deserialize, Serialize};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlTextAreaElement;
-use serde::{Deserialize, Serialize};
+use yew::prelude::*;
+use yew_router::prelude::*;
 
 #[cfg(debug_assertions)]
 const API_BASE: &str = "/api";
@@ -31,8 +31,7 @@ pub fn blog() -> Html {
     let posts = use_state(|| Vec::<Post>::new());
     let input = use_state(|| "".to_string());
 
-    let username: String =
-        LocalStorage::get("username").unwrap_or("".to_string());
+    let username: String = LocalStorage::get("username").unwrap_or("".to_string());
 
     let token: Option<String> = LocalStorage::get("token").ok();
     let is_logged_in = token.is_some();
@@ -141,11 +140,7 @@ pub fn blog() -> Html {
                 nav.push(&crate::app::Route::Login);
             }
 
-            web_sys::window()
-                .unwrap()
-                .location()
-                .reload()
-                .unwrap();
+            web_sys::window().unwrap().location().reload().unwrap();
         })
     };
 
@@ -244,7 +239,7 @@ pub fn blog() -> Html {
         }
     }
     </div>
-    
+
             // ✅ POSTS
             <div class="blog-posts">
                 <h3>{ "Posts:" }</h3>

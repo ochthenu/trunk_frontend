@@ -1,7 +1,7 @@
-use yew::prelude::*;
 use gloo_net::http::Request;
 use serde::Serialize;
 use wasm_bindgen_futures::spawn_local;
+use yew::prelude::*;
 
 #[cfg(debug_assertions)]
 const API_BASE: &str = "/api";
@@ -18,7 +18,6 @@ struct RegisterPayload {
 
 #[function_component(Register)]
 pub fn register() -> Html {
-
     let name = use_state(|| "".to_string());
     let email = use_state(|| "".to_string());
     let password = use_state(|| "".to_string());
@@ -62,7 +61,6 @@ pub fn register() -> Html {
         let message = message.clone();
 
         Callback::from(move |_| {
-
             let payload = RegisterPayload {
                 name: (*name).clone(),
                 email: (*email).clone(),
@@ -75,7 +73,6 @@ pub fn register() -> Html {
             let message_handle = message.clone();
 
             spawn_local(async move {
-
                 let response = Request::post(&format!("{}/register", API_BASE))
                     .header("Content-Type", "application/json")
                     .json(&payload)
@@ -100,9 +97,7 @@ pub fn register() -> Html {
                         message_handle.set("Failed to contact server".to_string());
                     }
                 }
-
             });
-
         })
     };
 

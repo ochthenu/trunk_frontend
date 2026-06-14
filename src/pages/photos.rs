@@ -10,7 +10,6 @@ pub struct PhotosProps {
 
 #[function_component(Photos)]
 pub fn photos(props: &PhotosProps) -> Html {
-
     let all_images = vec![
         (
             "wash",

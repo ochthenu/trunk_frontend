@@ -1,19 +1,9 @@
+use gloo::storage::{LocalStorage, Storage};
 use yew::prelude::*;
 use yew_router::prelude::*;
-use gloo::storage::{LocalStorage, Storage};
 
 use crate::pages::{
-    About,
-    Blog,
-    Contact,
-    Faq,
-    Gallery,
-    Home,
-    Photos,
-    PhotosCategory,
-    Users,
-    Register,
-    Login,
+    About, Blog, Contact, Faq, Gallery, Home, Login, Photos, PhotosCategory, Register, Users,
 };
 
 #[derive(Routable, PartialEq, Clone, Debug)]
@@ -58,7 +48,6 @@ pub enum Route {
 
 fn switch(route: Route) -> Html {
     match route {
-
         Route::Home => {
             html! { <Home /> }
         }
@@ -113,83 +102,82 @@ fn switch(route: Route) -> Html {
 
 #[function_component(App)]
 pub fn app() -> Html {
-
     let token: Option<String> = LocalStorage::get("token").ok();
     let is_logged_in = token.is_some();
 
     html! {
-        <BrowserRouter>
+            <BrowserRouter>
 
-            <main class="app-container">
+                <main class="app-container">
 
-                <nav class="main-nav">
+                    <nav class="main-nav">
 
-                    <ul>
+                        <ul>
 
-                        <li>
-                            <Link<Route> to={Route::Home}>
-                                { "Home" }
-                            </Link<Route>>
-                        </li>
+                            <li>
+                                <Link<Route> to={Route::Home}>
+                                    { "Home" }
+                                </Link<Route>>
+                            </li>
 
-                        <li>
-                            <Link<Route> to={Route::About}>
-                                { "About" }
-                            </Link<Route>>
-                        </li>
+                            <li>
+                                <Link<Route> to={Route::About}>
+                                    { "About" }
+                                </Link<Route>>
+                            </li>
 
-                        <li>
-                            <Link<Route> to={Route::Contact}>
-                                { "Contact" }
-                            </Link<Route>>
-                        </li>
+                            <li>
+                                <Link<Route> to={Route::Contact}>
+                                    { "Contact" }
+                                </Link<Route>>
+                            </li>
 
-                        <li>
-                            <Link<Route> to={Route::PhotosAll}>
-                                { "Photos" }
-                            </Link<Route>>
-                        </li>
+                            <li>
+                                <Link<Route> to={Route::PhotosAll}>
+                                    { "Photos" }
+                                </Link<Route>>
+                            </li>
 
-                        <li>
-                            <Link<Route> to={Route::Gallery}>
-                                { "Gallery" }
-                            </Link<Route>>
-                        </li>
+                            <li>
+                                <Link<Route> to={Route::Gallery}>
+                                    { "Gallery" }
+                                </Link<Route>>
+                            </li>
 
-                        <li>
-                            <Link<Route> to={Route::Blog}>
-                                { "Blog" }
-                            </Link<Route>>
-                        </li>
+                            <li>
+                                <Link<Route> to={Route::Blog}>
+                                    { "Blog" }
+                                </Link<Route>>
+                            </li>
 
-                        <li>
-                            <Link<Route> to={Route::Faq}>
-                                { "FAQ" }
-                            </Link<Route>>
-                        </li>
+                            <li>
+                                <Link<Route> to={Route::Faq}>
+                                    { "FAQ" }
+                                </Link<Route>>
+                            </li>
 
-                        {
-    if is_logged_in {
-        html! {
-            <li>
-                <Link<Route> to={Route::Users}>
-                    { "Users" }
-                </Link<Route>>
-            </li>
+                            {
+        if is_logged_in {
+            html! {
+                <li>
+                    <Link<Route> to={Route::Users}>
+                        { "Users" }
+                    </Link<Route>>
+                </li>
+            }
+        } else {
+            html! {}
         }
-    } else {
-        html! {}
     }
-}
 
-                    </ul>
+                        </ul>
 
-                </nav>
+                    </nav>
 
-                <Switch<Route> render={switch} />
+                    <Switch<Route> render={switch} />
 
-            </main>
+                </main>
 
-        </BrowserRouter>
-    }
+            </BrowserRouter>
+        }
 }

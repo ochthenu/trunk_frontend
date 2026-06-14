@@ -1,9 +1,9 @@
-use yew::prelude::*;
-use yew_router::prelude::*;
 use gloo::net::http::Request;
 use gloo::storage::{LocalStorage, Storage};
-use wasm_bindgen_futures::spawn_local;
 use serde::{Deserialize, Serialize};
+use wasm_bindgen_futures::spawn_local;
+use yew::prelude::*;
+use yew_router::prelude::*;
 
 #[cfg(debug_assertions)]
 const API_BASE: &str = "/api";
@@ -89,7 +89,7 @@ pub fn login() -> Html {
 
                                     // DEBUG (optional)
                                     web_sys::console::log_1(
-                                        &format!("Logged in as: {}", data.username).into()
+                                        &format!("Logged in as: {}", data.username).into(),
                                     );
 
                                     message_handle.set("Login successful".to_string());

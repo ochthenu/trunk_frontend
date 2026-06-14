@@ -91,5 +91,3 @@ pub fn contact() -> Html {
         </main>
     }
 }
-
-

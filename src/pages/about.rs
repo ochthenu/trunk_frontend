@@ -14,7 +14,8 @@ const NOZAWANA_TEXT: &str = concat!(
 const BACKGROUND_TEXT: &str = concat!(
     "Nozawana is part of the turnip family. Currently, it is thought to be a different variety ",
     "derived from the turnip (var. hakabura, turnip greens), and is currently being used as a ",
-    "traditional pickled vegetable grown in the area."
+    "traditional pickled vegetable grown in the area (inekokina, haburona, narusawana, chōzenna). ",
+    "Both turnips and purple turnips (Suwa beni turnip, Hososhima turnip, etc.) are thought to be closely related.",
 );
 
 #[function_component(About)]
@@ -42,11 +43,18 @@ pub fn about() -> Html {
             <p>{
                 "Tradition holds that sometime between 1751 and 1764 the plant was brought from the Kyoto mountains \
                  to the village of Nozawaonsen by the master of the Buddhist temple Kenmeiji. \
-                 It has been cultivated around that area ever since, and thus came to be called Nozawana."
-            }</p>
+                 It has been cultivated around that area ever since, and thus came to be called Nozawana. Also known as shinshuuna (信州菜), nozawana is one of Japan's three major pickled vegetables, along with Takana and hiroshimana."
+                }</p>
+                <p
+                style="
+                    text-align: center;
+                    margin-top: 2rem;
+                    font-style: italic;
+                    color: #666;
+                "
+            >
+                { "Courtesy of Wikipedia" }
+            </p>
         </main>
     }
 }
-
-
-

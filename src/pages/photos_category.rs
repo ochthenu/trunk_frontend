@@ -9,44 +9,33 @@ pub struct Props {
 
 #[function_component(PhotosCategory)]
 pub fn photos_category(props: &Props) -> Html {
-
     let items = match props.category.as_str() {
-
         "lightly-pickled" => vec![
             (
                 "/images/light1.jpg",
-                "A light-flavored dish that brings out the deliciousness of Nozawana."
+                "A light-flavored dish that brings out the deliciousness of Nozawana.",
             ),
             (
                 "/images/light2.jpg",
-                "Freshly prepared lightly pickled leaves."
+                "Freshly prepared lightly pickled leaves.",
             ),
-            (
-                "/images/light3.jpg",
-                "Served alongside warm rice."
-            ),
+            ("/images/light3.jpg", "Served alongside warm rice."),
         ],
 
         "wasabi-flavored" => vec![
             (
                 "/images/wasabi1.jpg",
-                "Wasabi flavored nozawana with extra spice."
+                "Wasabi flavored nozawana with extra spice.",
             ),
             (
                 "/images/wasabi2.jpg",
-                "Bright green leaves with wasabi seasoning."
+                "Bright green leaves with wasabi seasoning.",
             ),
         ],
 
         "wasabi-soy" => vec![
-            (
-                "/images/soy1.jpg",
-                "Wasabi and soy flavored nozawana."
-            ),
-            (
-                "/images/soy2.jpg",
-                "Savory soy aroma with mild heat."
-            ),
+            ("/images/soy1.jpg", "Wasabi and soy flavored nozawana."),
+            ("/images/soy2.jpg", "Savory soy aroma with mild heat."),
         ],
 
         _ => vec![],

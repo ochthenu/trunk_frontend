@@ -4,7 +4,6 @@ use yew_router::prelude::*;
 
 #[function_component(Gallery)]
 pub fn gallery() -> Html {
-
     html! {
 
         <main class="gallery">

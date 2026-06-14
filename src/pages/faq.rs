@@ -59,8 +59,3 @@ pub fn faq() -> Html {
         </main>
     }
 }
-
-
-
-
-

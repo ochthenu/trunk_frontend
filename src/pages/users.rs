@@ -1,8 +1,8 @@
-use yew::prelude::*;
-use yew_router::prelude::*; // ✅ needed for navigation
 use gloo::net::http::Request;
 use gloo::storage::{LocalStorage, Storage};
 use wasm_bindgen_futures::spawn_local;
+use yew::prelude::*;
+use yew_router::prelude::*; // ✅ needed for navigation
 
 #[cfg(debug_assertions)]
 const API_BASE: &str = "/api";
@@ -18,7 +18,6 @@ struct User {
 
 #[function_component(Users)]
 pub fn users() -> Html {
-
     // ✅ navigator (SAFE, no unwrap)
     let navigator = use_navigator();
 
@@ -58,7 +57,6 @@ pub fn users() -> Html {
 
         use_effect_with((), move |_| {
             spawn_local(async move {
-
                 let url = format!("{}/users", API_BASE);
 
                 match Request::get(&url)
@@ -66,17 +64,11 @@ pub fn users() -> Html {
                     .send()
                     .await
                 {
-                    Ok(resp) => {
-                        match resp.json::<Vec<User>>().await {
-                            Ok(data) => users.set(data),
-                            Err(e) => web_sys::console::log_1(
-                                &format!("JSON error: {:?}", e).into()
-                            ),
-                        }
-                    }
-                    Err(e) => web_sys::console::log_1(
-                        &format!("Request error: {:?}", e).into()
-                    ),
+                    Ok(resp) => match resp.json::<Vec<User>>().await {
+                        Ok(data) => users.set(data),
+                        Err(e) => web_sys::console::log_1(&format!("JSON error: {:?}", e).into()),
+                    },
+                    Err(e) => web_sys::console::log_1(&format!("Request error: {:?}", e).into()),
                 }
             });
 
@@ -156,4 +148,3 @@ pub fn users() -> Html {
         </div>
     }
 }
-

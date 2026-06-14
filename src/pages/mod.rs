@@ -6,11 +6,11 @@ pub mod faq;
 pub mod gallery;
 pub mod game;
 pub mod home;
+pub mod login;
 pub mod photos;
+pub mod photos_category;
 pub mod register;
 pub mod users;
-pub mod login;
-pub mod photos_category;
 
 // Re-export page components
 pub use about::About;
@@ -20,8 +20,8 @@ pub use faq::Faq;
 pub use gallery::Gallery;
 pub use game::Game;
 pub use home::Home;
+pub use login::Login;
 pub use photos::Photos;
+pub use photos_category::PhotosCategory;
 pub use register::Register;
 pub use users::Users;
-pub use login::Login;
-pub use photos_category::PhotosCategory;
