@@ -3,63 +3,63 @@ use yew::prelude::*;
 #[function_component(Home)]
 pub fn home() -> Html {
     html! {
-            <main>
+        <main>
 
-            <img
-                class="home-banner"
-                src="/images/title.png"
-                alt="Nozawana Site"
-            />
+        <img
+            class="home-banner"
+            src="/images/title.png"
+            alt="Nozawana Site"
+        />
 
-            <div class="home-container">
-                <section class="page-content">
+        <div class="home-container">
+            <section class="page-content">
 
-                    <h1>{ "Welcome" }</h1>
+                <h1>{ "Welcome" }</h1>
 
-                    <p>
-                        { "Nozawana is a delightful side dish to any meal. It is both nutritious and delicious. How can you cultivate it? How can you prepare it? But, most importantly, where can you buy ready-to-serve products? This site aims to answer these questions and introduce you to some great Nozawana products." }
-                    </p>
+                <p>
+                    { "Nozawana is a delightful side dish to any meal. It is both nutritious and delicious. How can you cultivate it? How can you prepare it? But, most importantly, where can you buy ready-to-serve products? This site aims to answer these questions and introduce you to some great Nozawana products." }
+                </p>
 
-                    <p>
-        { "In the production of almost everything, we take from our environment. However, I would also like to introduce a company that gives something back—businesses with ecologically sustainable goals and a commitment to the future. That company is " }
+                <p>
+    { "In the production of almost everything, we take from our environment. However, I would also like to introduce a company that gives something back—businesses with ecologically sustainable goals and a commitment to the future. That company is " }
 
-        <a
-            href="http://127.0.0.1:8080"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            { "Takeuchi Nosan" }
-        </a>
+    <a
+        href="https://www.takeuchinousan.com"
+        target="_blank"
+        rel="noopener noreferrer"
+    >
+        { "Takeuchi Nosan" }
+    </a>
 
-        { "." }
-    </p>
+    { "." }
+</p>
 
-                    <p>
-                        { "More features coming soon..." }
-                    </p>
+                <p>
+                    { "More features coming soon..." }
+                </p>
 
-                    <div class="home-images">
+                <div class="home-images">
 
-                        <img
-                            src="/images/nozawana1.jpg"
-                            alt="Nozawana 1"
-                        />
+                    <img
+                        src="/images/nozawana1.jpg"
+                        alt="Nozawana 1"
+                    />
 
-                        <img
-                            src="/images/nozawana2.jpg"
-                            alt="Nozawana 2"
-                        />
+                    <img
+                        src="/images/nozawana2.jpg"
+                        alt="Nozawana 2"
+                    />
 
-                        <img
-                            src="/images/nozawana3.jpg"
-                            alt="Nozawana 3"
-                        />
+                    <img
+                        src="/images/nozawana3.jpg"
+                        alt="Nozawana 3"
+                    />
 
-                    </div>
+                </div>
 
-                </section>
-                    </div>
+            </section>
+                </div>
 
-            </main>
-        }
+        </main>
+    }
 }
