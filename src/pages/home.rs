@@ -24,7 +24,7 @@ pub fn home() -> Html {
     { "In the production of almost everything, we take from our environment. However, I would also like to introduce a company that gives something back—businesses with ecologically sustainable goals and a commitment to the future. That company is " }
 
     <a
-        href="https://www.takeuchinousan.com"
+        href="https://www.takeuchi-nousan.com"
         target="_blank"
         rel="noopener noreferrer"
     >
