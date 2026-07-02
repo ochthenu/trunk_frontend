@@ -186,25 +186,30 @@ pub fn blog() -> Html {
             <div class="blog-form">
     <h3>{ "Write a post:" }</h3>
 
-    {
-        if is_logged_in {
-            html! {
-                <>
-                    <textarea
-                        value={(*input).clone()}
-                        oninput={on_input}
-                        placeholder="Write something..."
-                    />
+            {
+                if is_logged_in {
+                    html! {
+                        <>
+                            <textarea
+                                value={(*input).clone()}
+                                oninput={on_input}
+                                placeholder="Write something..."
+                            />
 
-                    <div class="button-row">
-                        <button onclick={on_add}>
-                            { "Add Post" }
-                        </button>
-                    </div>
-                </>
-            }
-        } else {
-            html! {
+                            <input
+                                type="file"
+                                accept="image/*"
+                            />
+
+                            <div class="button-row">
+                                <button onclick={on_add}>
+                                    { "Add Post" }
+                                </button>
+                            </div>
+                        </>
+                    }
+                } else {
+                    html! {
                 <>
                     <p>
                         { "Register an account, then log in to create and manage your own posts." }
