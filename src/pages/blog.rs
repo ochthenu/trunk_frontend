@@ -2,7 +2,7 @@ use gloo::net::http::Request;
 use gloo::storage::{LocalStorage, Storage};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{File, HtmlInputElement, HtmlTextAreaElement};
+use web_sys::{File, FormData, HtmlInputElement, HtmlTextAreaElement};
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -22,6 +22,7 @@ struct Post {
 #[derive(Serialize)]
 struct CreatePost {
     content: String,
+    image_url: Option<String>,
 }
 
 #[function_component(Blog)]
@@ -84,6 +85,7 @@ pub fn blog() -> Html {
         let posts = posts.clone();
         let input = input.clone();
         let token = token.clone();
+        let selected_file = selected_file.clone();
 
         Callback::from(move |_| {
             if input.is_empty() || token.is_none() {
@@ -94,17 +96,54 @@ pub fn blog() -> Html {
             let posts = posts.clone();
             let input = input.clone();
             let token = token.clone().unwrap();
+            let selected_file = (*selected_file).clone();
 
             spawn_local(async move {
-                let _ = Request::post(&format!("{}/posts", API_BASE))
+                let mut image_url: Option<String> = None;
+                if let Some(file) = selected_file {
+                    let form = FormData::new().unwrap();
+
+                    form.append_with_blob_and_filename("file", &file, &file.name())
+                        .unwrap();
+
+                    let upload = Request::post(&format!("{}/upload", API_BASE))
+                        .body(form)
+                        .send()
+                        .await;
+
+                    match upload {
+                        Ok(resp) => {
+                            let text = resp.text().await.unwrap_or_default();
+
+                            web_sys::console::log_1(&format!("Upload returned: {}", text).into());
+
+                            image_url = Some(text);
+                        }
+                        Err(err) => {
+                            web_sys::console::log_1(&format!("Upload failed: {:?}", err).into());
+                        }
+                    }
+                }
+
+                let resp = Request::post(&format!("{}/posts", API_BASE))
                     .header("Content-Type", "application/json")
                     .header("Authorization", &format!("Bearer {}", token))
-                    .json(&CreatePost { content })
+                    .json(&CreatePost { content, image_url })
                     .unwrap()
                     .send()
                     .await;
 
-                // reload posts
+                match resp {
+                    Ok(r) => {
+                        web_sys::console::log_1(
+                            &format!("POST /posts returned {}", r.status()).into(),
+                        );
+                    }
+                    Err(e) => {
+                        web_sys::console::log_1(&format!("POST failed: {:?}", e).into());
+                    }
+                }
+
                 if let Ok(resp) = Request::get(&format!("{}/posts", API_BASE)).send().await {
                     if let Ok(data) = resp.json::<Vec<Post>>().await {
                         posts.set(data);
