@@ -332,7 +332,7 @@ pub fn blog() -> Html {
                     html! {
                         <div>
                             <img
-                                src={format!("http://localhost:3000{}", url)}
+                                src={format!("{}{}", API_BASE, url)}
                                 class="post-image"
                             />
                         </div>
