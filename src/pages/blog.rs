@@ -26,6 +26,11 @@ struct CreatePost {
     image_url: Option<String>,
 }
 
+#[derive(Deserialize)]
+struct UploadResult {
+    url: String,
+}
+
 #[function_component(Blog)]
 pub fn blog() -> Html {
     let navigator = use_navigator();
@@ -113,13 +118,20 @@ pub fn blog() -> Html {
                         .await;
 
                     match upload {
-                        Ok(resp) => {
-                            let text = resp.text().await.unwrap_or_default();
+                        Ok(resp) => match resp.json::<UploadResult>().await {
+                            Ok(result) => {
+                                web_sys::console::log_1(
+                                    &format!("Upload returned: {}", result.url).into(),
+                                );
 
-                            web_sys::console::log_1(&format!("Upload returned: {}", text).into());
-
-                            image_url = Some(text);
-                        }
+                                image_url = Some(result.url);
+                            }
+                            Err(err) => {
+                                web_sys::console::log_1(
+                                    &format!("Failed to parse upload response: {:?}", err).into(),
+                                );
+                            }
+                        },
                         Err(err) => {
                             web_sys::console::log_1(&format!("Upload failed: {:?}", err).into());
                         }
@@ -201,26 +213,90 @@ pub fn blog() -> Html {
     };
 
     html! {
-                <div class="page-content">
+                    <div class="page-content">
 
-                    <div class="blog-header">
-                        {
-                            if is_logged_in {
-                                html! { <p>{ format!("Logged in as: {}", username) }</p> }
-                            } else {
-                                html! { <p>{ "Not logged in" }</p> }
+                        <div class="blog-header">
+                            {
+                                if is_logged_in {
+                                    html! { <p>{ format!("Logged in as: {}", username) }</p> }
+                                } else {
+                                    html! { <p>{ "Not logged in" }</p> }
+                                }
                             }
-                        }
+
+                            {
+                                if is_logged_in {
+                                    html! {
+                                        <button onclick={on_logout}>
+                                            { "Logout" }
+                                        </button>
+                                    }
+                                } else {
+                                    html! {
+                                        <button onclick={
+                                            let navigator = navigator.clone();
+                                            Callback::from(move |_| {
+                                                if let Some(nav) = navigator.clone() {
+                                                    nav.push(&crate::app::Route::Login);
+                                                }
+                                            })
+                                        }>
+                                            { "Login" }
+                                        </button>
+                                    }
+                                }
+                            }
+                        </div>
+
+                        <h1>{ "Blog" }</h1>
+
+                        // ✅ FORM AREA
+                        <div class="blog-form">
+                <h3>{ "Write a post:" }</h3>
 
                         {
                             if is_logged_in {
                                 html! {
-                                    <button onclick={on_logout}>
-                                        { "Logout" }
-                                    </button>
+                                    <>
+                                        <textarea
+                                            value={(*input).clone()}
+                                            oninput={on_input}
+                                            placeholder="Write something..."
+                                        />
+
+                                        <input
+                type="file"
+                accept="image/*"
+                onchange={on_file_change}
+            />
+
+                                        <div class="button-row">
+                                            <button onclick={on_add}>
+                                                { "Add Post" }
+                                            </button>
+                                        </div>
+                                    </>
                                 }
                             } else {
                                 html! {
+                            <>
+                                <p>
+                                    { "Register an account, then log in to create and manage your own posts." }
+                                </p>
+
+
+                                <div class="button-row">
+                                    <button onclick={
+                                        let navigator = navigator.clone();
+                                        Callback::from(move |_| {
+                                            if let Some(nav) = navigator.clone() {
+                                                nav.push(&crate::app::Route::Register);
+                                            }
+                                        })
+                                    }>
+                                        { "Register" }
+                                    </button>
+
                                     <button onclick={
                                         let navigator = navigator.clone();
                                         Callback::from(move |_| {
@@ -231,137 +307,73 @@ pub fn blog() -> Html {
                                     }>
                                         { "Login" }
                                     </button>
-                                }
-                            }
+                                </div>
+                            </>
                         }
-                    </div>
-
-                    <h1>{ "Blog" }</h1>
-
-                    // ✅ FORM AREA
-                    <div class="blog-form">
-            <h3>{ "Write a post:" }</h3>
-
-                    {
-                        if is_logged_in {
-                            html! {
-                                <>
-                                    <textarea
-                                        value={(*input).clone()}
-                                        oninput={on_input}
-                                        placeholder="Write something..."
-                                    />
-
-                                    <input
-            type="file"
-            accept="image/*"
-            onchange={on_file_change}
-        />
-
-                                    <div class="button-row">
-                                        <button onclick={on_add}>
-                                            { "Add Post" }
-                                        </button>
-                                    </div>
-                                </>
-                            }
-                        } else {
-                            html! {
-                        <>
-                            <p>
-                                { "Register an account, then log in to create and manage your own posts." }
-                            </p>
-
-
-                            <div class="button-row">
-                                <button onclick={
-                                    let navigator = navigator.clone();
-                                    Callback::from(move |_| {
-                                        if let Some(nav) = navigator.clone() {
-                                            nav.push(&crate::app::Route::Register);
-                                        }
-                                    })
-                                }>
-                                    { "Register" }
-                                </button>
-
-                                <button onclick={
-                                    let navigator = navigator.clone();
-                                    Callback::from(move |_| {
-                                        if let Some(nav) = navigator.clone() {
-                                            nav.push(&crate::app::Route::Login);
-                                        }
-                                    })
-                                }>
-                                    { "Login" }
-                                </button>
-                            </div>
-                        </>
                     }
                 }
-            }
-            </div>
-
-                    // ✅ POSTS
-                    <div class="blog-posts">
-                        <h3>{ "Posts:" }</h3>
-
-                        {
-                            if posts.is_empty() {
-                                html! { <p>{ "No posts yet." }</p> }
-                            } else {
-                                html! {
-                                    for posts.iter().map(|post| {
-                                        let can_delete =
-                                            is_logged_in &&
-                                            (post.username == username || is_admin);
-
-                                        let id = post.id;
-
-                                        let on_delete = {
-                                            let on_delete = on_delete.clone();
-                                            Callback::from(move |_| on_delete.emit(id))
-                                        };
-
-                                        html! {
-        <div class="post-item">
-            <strong>{ format!("{}: ", post.username) }</strong>
-
-            {
-                if let Some(url) = &post.image_url {
-                    html! {
-                        <div>
-                            <img
-                                src={format!("{}{}", API_BASE, url)}
-                                class="post-image"
-                            />
-                        </div>
-                    }
-                } else {
-                    html! {}
-                }
-            }
-
-            <div>{ &post.content }</div>
-
-            {
-                if can_delete {
-                    html! {
-                        <button onclick={on_delete}>
-                            { "Delete" }
-                        </button>
-                    }
-                } else {
-                    html! {}
-                }
-            }
-        </div>
-    }
-                                    })
-                                }
-                            }
-                        }
-                    </div>
                 </div>
-            }
+
+                        // ✅ POSTS
+                        <div class="blog-posts">
+                            <h3>{ "Posts:" }</h3>
+
+                            {
+                                if posts.is_empty() {
+                                    html! { <p>{ "No posts yet." }</p> }
+                                } else {
+                                    html! {
+                                        for posts.iter().map(|post| {
+                                            let can_delete =
+                                                is_logged_in &&
+                                                (post.username == username || is_admin);
+
+                                            let id = post.id;
+
+                                            let on_delete = {
+                                                let on_delete = on_delete.clone();
+                                                Callback::from(move |_| on_delete.emit(id))
+                                            };
+
+                                            html! {
+            <div class="post-item">
+                <strong>{ format!("{}: ", post.username) }</strong>
+
+                {
+                    if let Some(url) = &post.image_url {
+                        html! {
+                            <div>
+                                <img
+        src={url.clone()}
+        class="post-image"
+    />
+                            </div>
+                        }
+                    } else {
+                        html! {}
+                    }
+                }
+
+                <div>{ &post.content }</div>
+
+                {
+                    if can_delete {
+                        html! {
+                            <button onclick={on_delete}>
+                                { "Delete" }
+                            </button>
+                        }
+                    } else {
+                        html! {}
+                    }
+                }
+            </div>
+        }
+                                        })
+                                    }
+                                }
+                            }
+                        </div>
+                    </div>
+                }
 }
