@@ -49,7 +49,7 @@ pub fn faq() -> Html {
 
             <FaqItem
                 question={"Is this built with Rust?".to_string()}
-                answer={"Yes. The frontend is written in Rust using Yew.".to_string()}
+                answer={"Yes. The frontend is written in Rust using Yew. The backend is using Axum.".to_string()}
             />
 
             <FaqItem
