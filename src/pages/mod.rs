@@ -1,10 +1,8 @@
 pub mod about;
 pub mod blog;
 pub mod contact;
-pub mod counter;
 pub mod faq;
 pub mod gallery;
-pub mod game;
 pub mod home;
 pub mod login;
 pub mod photos;
@@ -18,7 +16,6 @@ pub use blog::Blog;
 pub use contact::Contact;
 pub use faq::Faq;
 pub use gallery::Gallery;
-pub use game::Game;
 pub use home::Home;
 pub use login::Login;
 pub use photos::Photos;
