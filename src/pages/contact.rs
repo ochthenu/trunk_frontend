@@ -49,7 +49,7 @@ pub fn contact() -> Html {
             let submitted = submitted.clone();
 
             spawn_local(async move {
-                let _ = Request::post("https://formspree.io/f/xwvnvbgp")
+                let _ = Request::post("https://formspree.io/f/mljdndrr")
                     .header("Accept", "application/json")
                     .json(&payload)
                     .unwrap()
